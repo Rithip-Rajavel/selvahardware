@@ -18,7 +18,7 @@ public class ProductRequest {
 
     @NotNull
     @DecimalMin("0.01")
-    private BigDecimal price;
+    private Double price;
 
     @Min(0)
     private int stock;
@@ -28,7 +28,7 @@ public class ProductRequest {
 
     @NotNull
     @DecimalMin("0.0")
-    private BigDecimal gstPercentage;
+    private Double gstPercentage;
 
     private String category;
     private String description;

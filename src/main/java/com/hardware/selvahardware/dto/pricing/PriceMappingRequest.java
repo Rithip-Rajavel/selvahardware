@@ -10,10 +10,10 @@ import java.util.UUID;
 
 @Data
 public class PriceMappingRequest {
-    @NotBlank
+    @NotNull
     private UUID customerId;
 
-    @NotBlank
+    @NotNull
     private UUID productId;
 
     @NotNull

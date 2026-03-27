@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 public class InvoiceItemRequest {
-    @NotBlank
+    @NotNull
     private UUID productId;
 
     @NotBlank

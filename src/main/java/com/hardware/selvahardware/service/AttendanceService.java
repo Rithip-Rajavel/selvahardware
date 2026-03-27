@@ -42,7 +42,6 @@ public class AttendanceService {
         Attendance attendance = attendanceRepository
                 .findByEmployeeIdAndAttendanceDate(request.getEmployeeId(), request.getAttendanceDate())
                 .orElse(Attendance.builder()
-                        .id(UUID.randomUUID())
                         .employee(employee)
                         .build());
 

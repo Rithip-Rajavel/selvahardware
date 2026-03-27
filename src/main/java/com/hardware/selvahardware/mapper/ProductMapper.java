@@ -4,6 +4,7 @@ import com.hardware.selvahardware.dto.product.ProductDto;
 import com.hardware.selvahardware.dto.product.ProductRequest;
 import com.hardware.selvahardware.entity.Product;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
@@ -31,14 +32,13 @@ public class ProductMapper {
 
     public Product toEntity(ProductRequest req, UUID id) {
         return Product.builder()
-                .id(id)
                 .name(req.getName())
                 .code(req.getCode())
                 .barcode(req.getBarcode())
-                .price(req.getPrice())
+                .price(req.getPrice() != null ? BigDecimal.valueOf(req.getPrice()) : null)
                 .stock(req.getStock())
                 .unit(req.getUnit())
-                .gstPercentage(req.getGstPercentage())
+                .gstPercentage(req.getGstPercentage() != null ? BigDecimal.valueOf(req.getGstPercentage()) : null)
                 .category(req.getCategory())
                 .description(req.getDescription())
                 .pricingType(req.getPricingType())
@@ -49,10 +49,10 @@ public class ProductMapper {
         product.setName(req.getName());
         product.setCode(req.getCode());
         product.setBarcode(req.getBarcode());
-        product.setPrice(req.getPrice());
+        product.setPrice(req.getPrice() != null ? BigDecimal.valueOf(req.getPrice()) : null);
         product.setStock(req.getStock());
         product.setUnit(req.getUnit());
-        product.setGstPercentage(req.getGstPercentage());
+        product.setGstPercentage(req.getGstPercentage() != null ? BigDecimal.valueOf(req.getGstPercentage()) : null);
         product.setCategory(req.getCategory());
         product.setDescription(req.getDescription());
         product.setPricingType(req.getPricingType());

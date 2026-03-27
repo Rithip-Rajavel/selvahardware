@@ -32,14 +32,13 @@ public class EmployeeService {
     }
 
     public EmployeeDto create(EmployeeRequest request) {
-        UUID id = UUID.randomUUID();
         String code = (request.getCode() != null && !request.getCode().isBlank())
                 ? request.getCode().toUpperCase()
                 : generateCode();
         if (employeeRepository.existsByCode(code)) {
             throw new BusinessException("Employee code already exists: " + code);
         }
-        Employee employee = employeeMapper.toEntity(request, id, code);
+        Employee employee = employeeMapper.toEntity(request, null, code);
         return employeeMapper.toDto(employeeRepository.save(employee));
     }
 

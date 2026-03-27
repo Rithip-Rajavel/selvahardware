@@ -40,8 +40,7 @@ public class ProductService {
         if (productRepository.existsByCode(request.getCode())) {
             throw new BusinessException("Product code already exists: " + request.getCode());
         }
-        UUID id = UUID.randomUUID();
-        Product product = productMapper.toEntity(request, id);
+        Product product = productMapper.toEntity(request, null);
         return productMapper.toDto(productRepository.save(product));
     }
 

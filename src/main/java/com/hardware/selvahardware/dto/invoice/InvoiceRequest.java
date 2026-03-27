@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 public class InvoiceRequest {
-    @NotBlank
+    @NotNull
     private UUID customerId;
 
     @NotBlank

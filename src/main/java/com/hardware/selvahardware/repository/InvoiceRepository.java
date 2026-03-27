@@ -24,14 +24,17 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
     @Query("SELECT i FROM Invoice i WHERE i.customer.id = :customerId AND i.status = 'pending' ORDER BY i.createdAt ASC")
     List<Invoice> findPendingInvoicesByCustomer(@Param("customerId") String customerId);
 
-    @Query("SELECT i FROM Invoice i WHERE " +
-           "(:customerId IS NULL OR i.customer.id = :customerId) AND " +
+    @Query("SELECT i FROM Invoice i LEFT JOIN FETCH i.items LEFT JOIN FETCH i.customer ORDER BY i.createdAt DESC")
+    List<Invoice> findAllInvoicesWithItems();
+
+    @Query(value = "SELECT * FROM invoices i WHERE " +
+           "(:customerId IS NULL OR i.customer_id = :customerId) AND " +
            "(:status IS NULL OR i.status = :status) AND " +
-           "(:billType IS NULL OR i.billType = :billType) AND " +
-           "(:fromDate IS NULL OR i.createdAt >= :fromDate) AND " +
-           "(:toDate IS NULL OR i.createdAt <= :toDate) AND " +
-           "(:search IS NULL OR LOWER(i.invoiceNumber) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR LOWER(i.customerName) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "(:billType IS NULL OR i.bill_type = :billType) AND " +
+           "(:fromDate IS NULL OR i.created_at >= :fromDate) AND " +
+           "(:toDate IS NULL OR i.created_at <= :toDate) AND " +
+           "(:search IS NULL OR i.invoice_number ILIKE CONCAT('%', :search, '%') " +
+           "OR i.customer_name ILIKE CONCAT('%', :search, '%'))", nativeQuery = true)
     List<Invoice> filterInvoices(@Param("customerId") UUID customerId,
                                   @Param("status") InvoiceStatus status,
                                   @Param("billType") BillType billType,

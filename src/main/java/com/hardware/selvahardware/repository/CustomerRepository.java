@@ -17,7 +17,7 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
 
     @Query("SELECT c FROM Customer c WHERE " +
            "(:type IS NULL OR c.type = :type) AND " +
-           "(:search IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "OR c.phone LIKE CONCAT('%', :search, '%'))")
+           "(:search IS NULL OR c.name ILIKE CONCAT('%', cast(:search as text), '%') " +
+           "OR c.phone LIKE CONCAT('%', cast(:search as text), '%'))")
     List<Customer> searchCustomers(@Param("type") CustomerType type, @Param("search") String search);
 }

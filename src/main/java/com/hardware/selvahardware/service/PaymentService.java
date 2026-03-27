@@ -37,7 +37,6 @@ public class PaymentService {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
         Payment payment = Payment.builder()
-                .id(UUID.randomUUID())
                 .customer(customer)
                 .customerName(request.getCustomerName())
                 .invoiceId(request.getInvoiceId())

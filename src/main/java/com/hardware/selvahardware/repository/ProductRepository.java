@@ -18,9 +18,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query(value = "SELECT * FROM products p WHERE " +
        "(:category IS NULL OR p.category = :category) AND " +
-       "(:search IS NULL OR p.name ILIKE CONCAT('%', :search, '%') " +
-       "OR p.code ILIKE CONCAT('%', :search, '%') " +
-       "OR p.barcode ILIKE CONCAT('%', :search, '%'))",
+       "(:search IS NULL OR p.name ILIKE CONCAT('%', cast(:search as text), '%') " +
+       "OR p.code ILIKE CONCAT('%', cast(:search as text), '%') " +
+       "OR p.barcode ILIKE CONCAT('%', cast(:search as text), '%'))",
        nativeQuery = true)
     List<Product> searchProducts(String category, String search);
 

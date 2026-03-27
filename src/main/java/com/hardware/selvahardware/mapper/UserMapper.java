@@ -26,7 +26,6 @@ public class UserMapper {
 
     public User toEntity(CreateUserRequest req, UUID id, String encodedPassword) {
         return User.builder()
-                .id(id)
                 .name(req.getName())
                 .email(req.getEmail())
                 .passwordHash(encodedPassword)

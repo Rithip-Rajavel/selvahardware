@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Data
 public class PendingBillRequest {
-    @NotBlank
+    @NotNull
     private UUID customerId;
 
     @NotBlank

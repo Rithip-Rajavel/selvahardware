@@ -57,7 +57,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
+        // Log the full error for debugging
+        ex.printStackTrace();
+        
+        Map<String, String> details = new HashMap<>();
+        details.put("errorType", ex.getClass().getSimpleName());
+        details.put("message", ex.getMessage());
+        
+        // Get root cause
+        Throwable cause = ex.getCause();
+        if (cause != null) {
+            details.put("rootCause", cause.getMessage());
+        }
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("INTERNAL_ERROR", "An unexpected error occurred"));
+                .body(ApiResponse.<Void>builder()
+                        .success(false)
+                        .error(new ApiResponse.ErrorDetail("INTERNAL_ERROR", "An unexpected error occurred: " + ex.getMessage(), details))
+                        .build());
     }
 }

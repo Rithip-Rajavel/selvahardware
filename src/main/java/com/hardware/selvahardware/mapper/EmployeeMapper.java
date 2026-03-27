@@ -32,7 +32,6 @@ public class EmployeeMapper {
 
     public Employee toEntity(EmployeeRequest req, UUID id, String code) {
         return Employee.builder()
-                .id(id)
                 .name(req.getName())
                 .code(code)
                 .phone(req.getPhone())

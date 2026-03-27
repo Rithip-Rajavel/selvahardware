@@ -83,7 +83,6 @@ public class PendingBillService {
 
     private List<PendingBillItem> mapItems(List<InvoiceItemRequest> reqs, PendingBill bill) {
         return reqs.stream().map(req -> PendingBillItem.builder()
-                .id(UUID.randomUUID())
                 .pendingBill(bill)
                 .productId(req.getProductId())
                 .productName(req.getProductName())

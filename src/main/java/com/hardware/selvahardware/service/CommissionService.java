@@ -31,7 +31,6 @@ public class CommissionService {
 
     public CommissionDto create(CommissionRequest request) {
         Commission commission = Commission.builder()
-                .id(UUID.randomUUID())
                 .contractorId(request.getContractorId())
                 .contractorName(request.getContractorName())
                 .invoiceId(request.getInvoiceId())

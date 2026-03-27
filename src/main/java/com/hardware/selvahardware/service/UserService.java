@@ -33,9 +33,8 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("Email already in use: " + request.getEmail());
         }
-        UUID id = UUID.randomUUID();
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-        User user = userMapper.toEntity(request, id, encodedPassword);
+        User user = userMapper.toEntity(request, null, encodedPassword);
         return userMapper.toDto(userRepository.save(user));
     }
 

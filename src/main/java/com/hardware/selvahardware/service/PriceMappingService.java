@@ -28,7 +28,7 @@ public class PriceMappingService {
     public PriceMappingDto createOrUpdate(PriceMappingRequest request) {
         PriceMapping pm = priceMappingRepository
                 .findByCustomerIdAndProductId(request.getCustomerId(), request.getProductId())
-                .orElse(PriceMapping.builder().id(UUID.randomUUID()).build());
+                .orElse(PriceMapping.builder().build());
         pm.setCustomerId(request.getCustomerId());
         pm.setProductId(request.getProductId());
         pm.setLastPrice(request.getLastPrice());

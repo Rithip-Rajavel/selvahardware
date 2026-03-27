@@ -17,8 +17,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
 
     @Query("SELECT e FROM Employee e WHERE " +
            "(:active IS NULL OR e.isActive = :active) AND " +
-           "(:search IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%',:search,'%')) " +
-           "OR LOWER(e.code) LIKE LOWER(CONCAT('%',:search,'%')) " +
-           "OR e.phone LIKE CONCAT('%',:search,'%'))")
+           "(:search IS NULL OR e.name ILIKE CONCAT('%', cast(:search as text), '%') " +
+           "OR e.code ILIKE CONCAT('%', cast(:search as text), '%') " +
+           "OR e.phone LIKE CONCAT('%', cast(:search as text), '%'))")
     List<Employee> searchEmployees(@Param("active") Boolean active, @Param("search") String search);
 }

@@ -72,7 +72,6 @@ public class InvoiceMapper {
 
     public InvoiceItem toItemEntity(InvoiceItemRequest req, UUID itemId) {
         return InvoiceItem.builder()
-                .id(itemId)
                 .productId(req.getProductId())
                 .productName(req.getProductName())
                 .productCode(req.getProductCode())

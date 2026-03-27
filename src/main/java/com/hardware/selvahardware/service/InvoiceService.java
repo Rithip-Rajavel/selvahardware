@@ -33,11 +33,61 @@ public class InvoiceService {
 
     public List<InvoiceDto> getInvoices(UUID customerId, InvoiceStatus status, BillType billType,
                                          String fromDate, String toDate, String search) {
+        
+        // If no filters provided, return all invoices directly
+        if (customerId == null && status == null && billType == null && 
+            fromDate == null && toDate == null && (search == null || search.trim().isEmpty())) {
+            return invoiceRepository.findAllInvoicesWithItems().stream()
+                    .map(invoiceMapper::toDto)
+                    .collect(Collectors.toList());
+        }
+        
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
 
-        return invoiceRepository.filterInvoices(customerId, status, billType, from, to, search)
-                .stream().map(invoiceMapper::toDto).collect(Collectors.toList());
+        // Start with all invoices and apply filters dynamically
+        List<Invoice> invoices = invoiceRepository.findAllInvoicesWithItems();
+        
+        // Apply filters in Java to avoid PostgreSQL parameter type issues
+        if (customerId != null) {
+            invoices = invoices.stream()
+                    .filter(invoice -> invoice.getCustomer().getId().equals(customerId))
+                    .collect(Collectors.toList());
+        }
+        
+        if (status != null) {
+            invoices = invoices.stream()
+                    .filter(invoice -> invoice.getStatus().equals(status))
+                    .collect(Collectors.toList());
+        }
+        
+        if (billType != null) {
+            invoices = invoices.stream()
+                    .filter(invoice -> invoice.getBillType().equals(billType))
+                    .collect(Collectors.toList());
+        }
+        
+        if (from != null) {
+            invoices = invoices.stream()
+                    .filter(invoice -> invoice.getCreatedAt().isAfter(from) || invoice.getCreatedAt().isEqual(from))
+                    .collect(Collectors.toList());
+        }
+        
+        if (to != null) {
+            invoices = invoices.stream()
+                    .filter(invoice -> invoice.getCreatedAt().isBefore(to) || invoice.getCreatedAt().isEqual(to))
+                    .collect(Collectors.toList());
+        }
+        
+        if (search != null && !search.trim().isEmpty()) {
+            String searchLower = search.toLowerCase();
+            invoices = invoices.stream()
+                    .filter(invoice -> invoice.getInvoiceNumber().toLowerCase().contains(searchLower) ||
+                                    invoice.getCustomerName().toLowerCase().contains(searchLower))
+                    .collect(Collectors.toList());
+        }
+        
+        return invoices.stream().map(invoiceMapper::toDto).collect(Collectors.toList());
     }
 
     @Transactional
@@ -46,10 +96,8 @@ public class InvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
 
         String invoiceNumber = generateInvoiceNumber(getSettings());
-        UUID id = UUID.randomUUID();
 
         Invoice invoice = Invoice.builder()
-                .id(id)
                 .invoiceNumber(invoiceNumber)
                 .customer(customer)
                 .customerName(request.getCustomerName())
@@ -70,7 +118,7 @@ public class InvoiceService {
                 .build();
 
         List<InvoiceItem> items = request.getItems().stream().map(itemReq -> {
-            InvoiceItem item = invoiceMapper.toItemEntity(itemReq, UUID.randomUUID());
+            InvoiceItem item = invoiceMapper.toItemEntity(itemReq, null);
             item.setInvoice(invoice);
             return item;
         }).collect(Collectors.toList());
@@ -96,7 +144,6 @@ public class InvoiceService {
                             priceMappingRepository.save(pm);
                         }, () -> {
                             PriceMapping pm = PriceMapping.builder()
-                                    .id(UUID.randomUUID())
                                     .customerId(customerId)
                                     .productId(productId)
                                     .lastPrice(itemReq.getPrice())
@@ -108,10 +155,9 @@ public class InvoiceService {
             // Record billing transaction
             BigDecimal customerBalance = getCustomerBalance(customer.getId());
             Payment billingTx = Payment.builder()
-                    .id(UUID.randomUUID())
                     .customer(customer)
                     .customerName(request.getCustomerName())
-                    .invoiceId(id)
+                    .invoiceId(invoice.getId())
                     .invoiceNumber(invoiceNumber)
                     .type(TransactionType.billing)
                     .amount(request.getGrandTotal())
@@ -151,10 +197,9 @@ public class InvoiceService {
         // Record payment transaction
         BigDecimal currentTotalBalance = getCustomerBalance(invoice.getCustomer().getId());
         Payment paymentTx = Payment.builder()
-                .id(UUID.randomUUID())
                 .customer(invoice.getCustomer())
                 .customerName(invoice.getCustomerName())
-                .invoiceId(id)
+                .invoiceId(invoice.getId())
                 .invoiceNumber(invoice.getInvoiceNumber())
                 .type(TransactionType.payment)
                 .amount(request.getAmount())

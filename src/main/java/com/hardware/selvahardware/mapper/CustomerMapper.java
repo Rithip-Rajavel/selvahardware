@@ -26,7 +26,6 @@ public class CustomerMapper {
 
     public Customer toEntity(CustomerRequest req, UUID id) {
         return Customer.builder()
-                .id(id)
                 .name(req.getName())
                 .phone(req.getPhone())
                 .email(req.getEmail())

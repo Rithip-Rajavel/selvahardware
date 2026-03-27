@@ -42,8 +42,7 @@ public class CustomerService {
     }
 
     public CustomerDto createCustomer(CustomerRequest request) {
-        UUID id = UUID.randomUUID();
-        Customer customer = customerMapper.toEntity(request, id);
+        Customer customer = customerMapper.toEntity(request, null);
         return customerMapper.toDto(customerRepository.save(customer));
     }
 
