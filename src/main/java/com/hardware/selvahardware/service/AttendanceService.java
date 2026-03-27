@@ -35,12 +35,12 @@ public class AttendanceService {
      * If already exists, updates it (upsert behavior).
      */
     public AttendanceDto markAttendance(AttendanceRequest request) {
-        if(request.getEmployeeId() == null) return null ;
+        if(request.getEmployeeId() == null) return null;
         Employee employee = employeeRepository.findById(request.getEmployeeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", request.getEmployeeId()));
 
         Attendance attendance = attendanceRepository
-                .findByEmployeeIdAndAttendanceDate(request.getEmployeeId(), request.getAttendanceDate())
+                .findByEmployeeIdAndAttendanceDateWithEmployee(request.getEmployeeId(), request.getAttendanceDate())
                 .orElse(Attendance.builder()
                         .employee(employee)
                         .build());
@@ -62,7 +62,7 @@ public class AttendanceService {
             throw new ResourceNotFoundException("Employee", employeeId);
         }
         return attendanceRepository
-                .findByEmployeeIdAndAttendanceDateBetweenOrderByAttendanceDateDesc(employeeId, from, to)
+                .findByEmployeeIdAndAttendanceDateBetweenWithEmployee(employeeId, from, to)
                 .stream().map(employeeMapper::toAttendanceDto).collect(Collectors.toList());
     }
 
@@ -71,7 +71,7 @@ public class AttendanceService {
      */
     public List<AttendanceDto> getDailyAttendance(LocalDate date) {
         return attendanceRepository
-                .findByAttendanceDateBetweenOrderByAttendanceDateDesc(date, date)
+                .findByAttendanceDateBetweenWithEmployee(date, date)
                 .stream().map(employeeMapper::toAttendanceDto).collect(Collectors.toList());
     }
 
@@ -107,7 +107,7 @@ public class AttendanceService {
 
         // Fetch all attendance records
         List<Attendance> records = attendanceRepository
-                .findByEmployeeIdAndAttendanceDateBetweenOrderByAttendanceDateDesc(employeeId, from, to);
+                .findByEmployeeIdAndAttendanceDateBetweenWithEmployee(employeeId, from, to);
 
         int presentDays = 0, absentDays = 0, halfDays = 0, leaveDays = 0, holidayDays = 0;
 

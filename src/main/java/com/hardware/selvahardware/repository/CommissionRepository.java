@@ -17,12 +17,4 @@ public interface CommissionRepository extends JpaRepository<Commission, UUID> {
 
     @Query("SELECT COALESCE(SUM(c.amount), 0) FROM Commission c WHERE c.contractorId = :contractorId")
     BigDecimal sumByContractorId(@Param("contractorId") UUID contractorId);
-
-    @Query("SELECT c FROM Commission c WHERE " +
-           "(:contractorId IS NULL OR c.contractorId = :contractorId) AND " +
-           "(:fromDate IS NULL OR c.createdAt >= :fromDate) AND " +
-           "(:toDate IS NULL OR c.createdAt <= :toDate)")
-    List<Commission> filterCommissions(@Param("contractorId") UUID contractorId,
-                                        @Param("fromDate") LocalDateTime fromDate,
-                                        @Param("toDate") LocalDateTime toDate);
 }

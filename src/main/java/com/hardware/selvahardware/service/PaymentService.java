@@ -29,8 +29,36 @@ public class PaymentService {
         TransactionType txType = type != null ? TransactionType.valueOf(type) : null;
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
-        return paymentRepository.filterPayments(customerId, txType, from, to)
-                .stream().map(paymentMapper::toDto).collect(Collectors.toList());
+
+        // Get all payments and apply filters dynamically
+        List<Payment> payments = paymentRepository.findAll();
+        
+        // Apply filters in Java to avoid PostgreSQL parameter type issues
+        if (customerId != null) {
+            payments = payments.stream()
+                    .filter(payment -> payment.getCustomer().getId().equals(customerId))
+                    .collect(Collectors.toList());
+        }
+        
+        if (txType != null) {
+            payments = payments.stream()
+                    .filter(payment -> payment.getType().equals(txType))
+                    .collect(Collectors.toList());
+        }
+        
+        if (from != null) {
+            payments = payments.stream()
+                    .filter(payment -> payment.getCreatedAt().isAfter(from) || payment.getCreatedAt().isEqual(from))
+                    .collect(Collectors.toList());
+        }
+        
+        if (to != null) {
+            payments = payments.stream()
+                    .filter(payment -> payment.getCreatedAt().isBefore(to) || payment.getCreatedAt().isEqual(to))
+                    .collect(Collectors.toList());
+        }
+        
+        return payments.stream().map(paymentMapper::toDto).collect(Collectors.toList());
     }
 
     public PaymentDto createPayment(PaymentRequest request) {

@@ -18,28 +18,48 @@ public class SettingsService {
     public SettingsDto getSettings() {
         List<ShopSettings> allSettings = settingsRepository.findAll();
         ShopSettings settings = allSettings.isEmpty() 
-                ? ShopSettings.builder().id(UUID.randomUUID()).name("").address("").build()
+                ? ShopSettings.builder().name("").address("").build()
                 : allSettings.get(0);
         return toDto(settings);
     }
 
     public SettingsDto updateSettings(SettingsDto dto) {
         List<ShopSettings> allSettings = settingsRepository.findAll();
-        ShopSettings settings = allSettings.isEmpty() 
-                ? ShopSettings.builder().id(UUID.randomUUID()).build()
-                : allSettings.get(0);
-        settings.setName(dto.getName());
-        settings.setAddress(dto.getAddress());
-        settings.setPhone(dto.getPhone());
-        settings.setEmail(dto.getEmail());
-        settings.setGstNumber(dto.getGstNumber());
-        settings.setBankName(dto.getBankName());
-        settings.setAccountNumber(dto.getAccountNumber());
-        settings.setIfscCode(dto.getIfscCode());
-        settings.setUpiId(dto.getUpiId());
-        settings.setDefaultGstPercentage(dto.getDefaultGstPercentage());
-        settings.setInvoicePrefix(dto.getInvoicePrefix());
-        settings.setTermsAndConditions(dto.getTermsAndConditions());
+        ShopSettings settings;
+        
+        if (allSettings.isEmpty()) {
+            // Create new settings with generated ID
+            settings = ShopSettings.builder()
+                    .name(dto.getName())
+                    .address(dto.getAddress())
+                    .phone(dto.getPhone())
+                    .email(dto.getEmail())
+                    .gstNumber(dto.getGstNumber())
+                    .bankName(dto.getBankName())
+                    .accountNumber(dto.getAccountNumber())
+                    .ifscCode(dto.getIfscCode())
+                    .upiId(dto.getUpiId())
+                    .defaultGstPercentage(dto.getDefaultGstPercentage())
+                    .invoicePrefix(dto.getInvoicePrefix())
+                    .termsAndConditions(dto.getTermsAndConditions())
+                    .build();
+        } else {
+            // Update existing settings
+            settings = allSettings.get(0);
+            settings.setName(dto.getName());
+            settings.setAddress(dto.getAddress());
+            settings.setPhone(dto.getPhone());
+            settings.setEmail(dto.getEmail());
+            settings.setGstNumber(dto.getGstNumber());
+            settings.setBankName(dto.getBankName());
+            settings.setAccountNumber(dto.getAccountNumber());
+            settings.setIfscCode(dto.getIfscCode());
+            settings.setUpiId(dto.getUpiId());
+            settings.setDefaultGstPercentage(dto.getDefaultGstPercentage());
+            settings.setInvoicePrefix(dto.getInvoicePrefix());
+            settings.setTermsAndConditions(dto.getTermsAndConditions());
+        }
+        
         return toDto(settingsRepository.save(settings));
     }
 

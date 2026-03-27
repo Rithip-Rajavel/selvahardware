@@ -25,8 +25,30 @@ public class CommissionService {
     public List<CommissionDto> getAll(UUID contractorId, String fromDate, String toDate) {
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
-        return commissionRepository.filterCommissions(contractorId, from, to)
-                .stream().map(commissionMapper::toDto).collect(Collectors.toList());
+
+        // Start with all commissions and apply filters dynamically
+        List<Commission> commissions = commissionRepository.findAll();
+        
+        // Apply filters in Java to avoid PostgreSQL parameter type issues
+        if (contractorId != null) {
+            commissions = commissions.stream()
+                    .filter(commission -> commission.getContractorId().equals(contractorId))
+                    .collect(Collectors.toList());
+        }
+        
+        if (from != null) {
+            commissions = commissions.stream()
+                    .filter(commission -> commission.getCreatedAt().isAfter(from) || commission.getCreatedAt().isEqual(from))
+                    .collect(Collectors.toList());
+        }
+        
+        if (to != null) {
+            commissions = commissions.stream()
+                    .filter(commission -> commission.getCreatedAt().isBefore(to) || commission.getCreatedAt().isEqual(to))
+                    .collect(Collectors.toList());
+        }
+        
+        return commissions.stream().map(commissionMapper::toDto).collect(Collectors.toList());
     }
 
     public CommissionDto create(CommissionRequest request) {

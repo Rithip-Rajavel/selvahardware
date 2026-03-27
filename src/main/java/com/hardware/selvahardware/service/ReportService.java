@@ -136,7 +136,28 @@ public class ReportService {
     public CommissionReport getCommissionReport(UUID contractorId, String fromDate, String toDate) {
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
-        var commissions = commissionRepository.filterCommissions(contractorId, from, to);
+        
+        // Get all commissions and filter in Java
+        var commissions = commissionRepository.findAll();
+        
+        if (contractorId != null) {
+            commissions = commissions.stream()
+                    .filter(c -> contractorId.equals(c.getContractorId()))
+                    .collect(Collectors.toList());
+        }
+        
+        if (from != null) {
+            commissions = commissions.stream()
+                    .filter(c -> !c.getCreatedAt().isBefore(from) || c.getCreatedAt().isEqual(from))
+                    .collect(Collectors.toList());
+        }
+        
+        if (to != null) {
+            commissions = commissions.stream()
+                    .filter(c -> !c.getCreatedAt().isAfter(to) || c.getCreatedAt().isEqual(to))
+                    .collect(Collectors.toList());
+        }
+        
         BigDecimal total = commissions.stream().map(c -> c.getAmount()).reduce(BigDecimal.ZERO, BigDecimal::add);
         long contractorCount = commissions.stream().map(c -> c.getContractorId()).distinct().count();
         return CommissionReport.builder()

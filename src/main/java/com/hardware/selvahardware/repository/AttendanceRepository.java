@@ -21,6 +21,16 @@ public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
             UUID employeeId, LocalDate from, LocalDate to);
 
     List<Attendance> findByAttendanceDateBetweenOrderByAttendanceDateDesc(LocalDate from, LocalDate to);
+    
+    // JOIN FETCH queries to eagerly load employee data
+    @Query("SELECT a FROM Attendance a JOIN FETCH a.employee WHERE a.employee.id = :empId AND a.attendanceDate = :date")
+    Optional<Attendance> findByEmployeeIdAndAttendanceDateWithEmployee(@Param("empId") UUID employeeId, @Param("date") LocalDate date);
+    
+    @Query("SELECT a FROM Attendance a JOIN FETCH a.employee WHERE a.employee.id = :empId AND a.attendanceDate BETWEEN :from AND :to ORDER BY a.attendanceDate DESC")
+    List<Attendance> findByEmployeeIdAndAttendanceDateBetweenWithEmployee(@Param("empId") UUID employeeId, @Param("from") LocalDate from, @Param("to") LocalDate to);
+    
+    @Query("SELECT a FROM Attendance a JOIN FETCH a.employee WHERE a.attendanceDate BETWEEN :from AND :to ORDER BY a.attendanceDate DESC")
+    List<Attendance> findByAttendanceDateBetweenWithEmployee(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
     @Query("SELECT COUNT(a) FROM Attendance a WHERE a.employee.id = :empId " +
            "AND a.attendanceDate BETWEEN :from AND :to AND a.status = :status")
