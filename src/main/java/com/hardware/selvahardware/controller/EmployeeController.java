@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -41,20 +42,20 @@ public class EmployeeController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get employee by ID")
-    public ResponseEntity<ApiResponse<EmployeeDto>> getById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<EmployeeDto>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(employeeService.getById(id)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update employee details or salary")
-    public ResponseEntity<ApiResponse<EmployeeDto>> update(@PathVariable String id,
+    public ResponseEntity<ApiResponse<EmployeeDto>> update(@PathVariable UUID id,
                                                             @Valid @RequestBody EmployeeRequest request) {
         return ResponseEntity.ok(ApiResponse.success(employeeService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deactivate employee (soft delete)")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         employeeService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Employee deactivated"));
     }

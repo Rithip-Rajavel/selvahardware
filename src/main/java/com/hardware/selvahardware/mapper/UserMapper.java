@@ -3,6 +3,9 @@ package com.hardware.selvahardware.mapper;
 import com.hardware.selvahardware.dto.user.CreateUserRequest;
 import com.hardware.selvahardware.dto.user.UserDto;
 import com.hardware.selvahardware.entity.User;
+
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,7 +24,7 @@ public class UserMapper {
                 .build();
     }
 
-    public User toEntity(CreateUserRequest req, String id, String encodedPassword) {
+    public User toEntity(CreateUserRequest req, UUID id, String encodedPassword) {
         return User.builder()
                 .id(id)
                 .name(req.getName())

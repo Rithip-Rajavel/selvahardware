@@ -9,6 +9,7 @@ import com.hardware.selvahardware.entity.InvoiceItem;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -69,7 +70,7 @@ public class InvoiceMapper {
                 .build();
     }
 
-    public InvoiceItem toItemEntity(InvoiceItemRequest req, String itemId) {
+    public InvoiceItem toItemEntity(InvoiceItemRequest req, UUID itemId) {
         return InvoiceItem.builder()
                 .id(itemId)
                 .productId(req.getProductId())

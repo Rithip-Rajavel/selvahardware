@@ -25,7 +25,7 @@ public class PaymentService {
     private final CustomerRepository customerRepository;
     private final PaymentMapper paymentMapper;
 
-    public List<PaymentDto> getPayments(String customerId, String type, String fromDate, String toDate) {
+    public List<PaymentDto> getPayments(UUID customerId, String type, String fromDate, String toDate) {
         TransactionType txType = type != null ? TransactionType.valueOf(type) : null;
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
@@ -37,7 +37,7 @@ public class PaymentService {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
         Payment payment = Payment.builder()
-                .id(UUID.randomUUID().toString())
+                .id(UUID.randomUUID())
                 .customer(customer)
                 .customerName(request.getCustomerName())
                 .invoiceId(request.getInvoiceId())
@@ -51,12 +51,12 @@ public class PaymentService {
         return paymentMapper.toDto(paymentRepository.save(payment));
     }
 
-    public List<PaymentDto> getCustomerPayments(String customerId) {
+    public List<PaymentDto> getCustomerPayments(UUID customerId) {
         return paymentRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
                 .stream().map(paymentMapper::toDto).collect(Collectors.toList());
     }
 
-    public void deletePayment(String id) {
+    public void deletePayment(UUID id) {
         if (!paymentRepository.existsById(id)) {
             throw new ResourceNotFoundException("Payment", id);
         }

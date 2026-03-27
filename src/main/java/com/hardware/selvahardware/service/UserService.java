@@ -33,13 +33,13 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException("Email already in use: " + request.getEmail());
         }
-        String id = UUID.randomUUID().toString();
+        UUID id = UUID.randomUUID();
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         User user = userMapper.toEntity(request, id, encodedPassword);
         return userMapper.toDto(userRepository.save(user));
     }
 
-    public UserDto updateUser(String id, CreateUserRequest request) {
+    public UserDto updateUser(UUID id, CreateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         user.setName(request.getName());
@@ -51,7 +51,7 @@ public class UserService {
         return userMapper.toDto(userRepository.save(user));
     }
 
-    public void deleteUser(String id) {
+    public void deleteUser(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User", id);
         }

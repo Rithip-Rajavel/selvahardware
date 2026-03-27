@@ -5,11 +5,12 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
 public class PayrollSummaryDto {
-    private String employeeId;
+    private UUID employeeId;
     private String employeeName;
     private String employeeCode;
     private int year;

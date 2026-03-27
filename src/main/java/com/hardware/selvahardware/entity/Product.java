@@ -1,9 +1,11 @@
 package com.hardware.selvahardware.entity;
 
 import com.hardware.selvahardware.enums.PricingType;
+import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -17,15 +19,17 @@ public class Product {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255)")
     private String name;
 
-    @Column(length = 50, unique = true, nullable = false)
+    @Column(length = 50, unique = true, nullable = false, columnDefinition = "varchar(50)")
     private String code;
 
-    @Column(length = 50)
+    @Column(length = 50, columnDefinition = "varchar(50)")
     private String barcode;
 
     @Column(nullable = false, precision = 10, scale = 2)

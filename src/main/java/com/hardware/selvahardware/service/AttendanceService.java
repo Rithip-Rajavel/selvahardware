@@ -35,13 +35,14 @@ public class AttendanceService {
      * If already exists, updates it (upsert behavior).
      */
     public AttendanceDto markAttendance(AttendanceRequest request) {
+        if(request.getEmployeeId() == null) return null ;
         Employee employee = employeeRepository.findById(request.getEmployeeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", request.getEmployeeId()));
 
         Attendance attendance = attendanceRepository
                 .findByEmployeeIdAndAttendanceDate(request.getEmployeeId(), request.getAttendanceDate())
                 .orElse(Attendance.builder()
-                        .id(UUID.randomUUID().toString())
+                        .id(UUID.randomUUID())
                         .employee(employee)
                         .build());
 
@@ -57,7 +58,7 @@ public class AttendanceService {
     /**
      * Get attendance records for a single employee within a date range.
      */
-    public List<AttendanceDto> getEmployeeAttendance(String employeeId, LocalDate from, LocalDate to) {
+    public List<AttendanceDto> getEmployeeAttendance(UUID employeeId, LocalDate from, LocalDate to) {
         if (!employeeRepository.existsById(employeeId)) {
             throw new ResourceNotFoundException("Employee", employeeId);
         }
@@ -78,7 +79,7 @@ public class AttendanceService {
     /**
      * Delete attendance record (correction).
      */
-    public void deleteAttendance(String id) {
+    public void deleteAttendance(UUID id) {
         if (!attendanceRepository.existsById(id)) {
             throw new ResourceNotFoundException("Attendance", id);
         }
@@ -94,7 +95,7 @@ public class AttendanceService {
      * - LOP days = absentDays + (halfDays * 0.5)
      * - Net salary = monthlySalary - (LOP days * perDaySalary)
      */
-    public PayrollSummaryDto calculatePayroll(String employeeId, int year, int month) {
+    public PayrollSummaryDto calculatePayroll(UUID employeeId, int year, int month) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", employeeId));
 

@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,7 +40,7 @@ public class ReportService {
     private final PaymentMapper paymentMapper;
     private final CustomerService customerService;
 
-    public SalesReport getSalesReport(String period, String customerId, String category) {
+    public SalesReport getSalesReport(String period, UUID customerId, String category) {
         LocalDateTime[] range = getPeriodRange(period);
         List<Invoice> invoices = invoiceRepository.filterInvoices(customerId, null, null, range[0], range[1], null);
 
@@ -86,7 +87,7 @@ public class ReportService {
                 .build();
     }
 
-    public LedgerReport getLedger(String customerId) {
+    public LedgerReport getLedger(UUID customerId) {
         if (!customerRepository.existsById(customerId)) {
             throw new ResourceNotFoundException("Customer", customerId);
         }
@@ -132,7 +133,7 @@ public class ReportService {
                 .build();
     }
 
-    public CommissionReport getCommissionReport(String contractorId, String fromDate, String toDate) {
+    public CommissionReport getCommissionReport(UUID contractorId, String fromDate, String toDate) {
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
         var commissions = commissionRepository.filterCommissions(contractorId, from, to);
@@ -162,7 +163,7 @@ public class ReportService {
     @Data @Builder public static class LedgerReport { private CustomerDto customer; private CustomerBalanceDto balance; private List<InvoiceDto> invoices; private List<PaymentDto> transactions; private List<CommissionDto> commissions; }
     @Data @Builder public static class InventoryReport { private InventorySummary summary; private List<ProductStat> products; }
     @Data @Builder public static class InventorySummary { private long totalProducts; private BigDecimal totalStockValue; private long lowStockCount; }
-    @Data @Builder public static class ProductStat { private String id; private String name; private String code; private int stock; private BigDecimal price; private String category; }
+    @Data @Builder public static class ProductStat { private UUID id; private String name; private String code; private int stock; private BigDecimal price; private String category; }
     @Data @Builder public static class CommissionReport { private CommissionSummary summary; private List<CommissionDto> byContractor; }
     @Data @Builder public static class CommissionSummary { private BigDecimal totalCommission; private long contractorCount; }
 }

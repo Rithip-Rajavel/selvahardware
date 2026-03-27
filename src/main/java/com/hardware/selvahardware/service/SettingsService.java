@@ -6,6 +6,9 @@ import com.hardware.selvahardware.repository.ShopSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class SettingsService {
@@ -13,14 +16,18 @@ public class SettingsService {
     private final ShopSettingsRepository settingsRepository;
 
     public SettingsDto getSettings() {
-        ShopSettings settings = settingsRepository.findById(1)
-                .orElse(ShopSettings.builder().id(1).name("").address("").build());
+        List<ShopSettings> allSettings = settingsRepository.findAll();
+        ShopSettings settings = allSettings.isEmpty() 
+                ? ShopSettings.builder().id(UUID.randomUUID()).name("").address("").build()
+                : allSettings.get(0);
         return toDto(settings);
     }
 
     public SettingsDto updateSettings(SettingsDto dto) {
-        ShopSettings settings = settingsRepository.findById(1)
-                .orElse(ShopSettings.builder().id(1).build());
+        List<ShopSettings> allSettings = settingsRepository.findAll();
+        ShopSettings settings = allSettings.isEmpty() 
+                ? ShopSettings.builder().id(UUID.randomUUID()).build()
+                : allSettings.get(0);
         settings.setName(dto.getName());
         settings.setAddress(dto.getAddress());
         settings.setPhone(dto.getPhone());

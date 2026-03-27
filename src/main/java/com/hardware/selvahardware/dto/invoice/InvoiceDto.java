@@ -4,6 +4,7 @@ import com.hardware.selvahardware.enums.*;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,9 +12,9 @@ import java.util.List;
 @Data
 @Builder
 public class InvoiceDto {
-    private String id;
+    private UUID id;
     private String invoiceNumber;
-    private String customerId;
+    private UUID customerId;
     private String customerName;
     private String customerPhone;
     private CustomerType customerType;
@@ -36,8 +37,8 @@ public class InvoiceDto {
     @Data
     @Builder
     public static class InvoiceItemDto {
-        private String id;
-        private String productId;
+        private UUID id;
+        private UUID productId;
         private String productName;
         private String productCode;
         private BigDecimal quantity;

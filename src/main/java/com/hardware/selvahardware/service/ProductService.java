@@ -31,7 +31,7 @@ public class ProductService {
                 .map(productMapper::toDto).collect(Collectors.toList());
     }
 
-    public ProductDto getProductById(String id) {
+    public ProductDto getProductById(UUID id) {
         return productMapper.toDto(productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id)));
     }
@@ -40,26 +40,26 @@ public class ProductService {
         if (productRepository.existsByCode(request.getCode())) {
             throw new BusinessException("Product code already exists: " + request.getCode());
         }
-        String id = UUID.randomUUID().toString();
+        UUID id = UUID.randomUUID();
         Product product = productMapper.toEntity(request, id);
         return productMapper.toDto(productRepository.save(product));
     }
 
-    public ProductDto updateProduct(String id, ProductRequest request) {
+    public ProductDto updateProduct(UUID id, ProductRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
         productMapper.updateEntity(product, request);
         return productMapper.toDto(productRepository.save(product));
     }
 
-    public void deleteProduct(String id) {
+    public void deleteProduct(UUID id) {
         if (!productRepository.existsById(id)) {
             throw new ResourceNotFoundException("Product", id);
         }
         productRepository.deleteById(id);
     }
 
-    public ProductDto updateStock(String id, StockUpdateRequest request) {
+    public ProductDto updateStock(UUID id, StockUpdateRequest request) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
 

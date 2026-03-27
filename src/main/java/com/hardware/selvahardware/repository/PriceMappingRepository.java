@@ -6,10 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface PriceMappingRepository extends JpaRepository<PriceMapping, String> {
-    List<PriceMapping> findByCustomerId(String customerId);
-    Optional<PriceMapping> findByCustomerIdAndProductId(String customerId, String productId);
-    boolean existsByCustomerIdAndProductId(String customerId, String productId);
+public interface PriceMappingRepository extends JpaRepository<PriceMapping, UUID> {
+    List<PriceMapping> findByCustomerId(UUID customerId);
+    Optional<PriceMapping> findByCustomerIdAndProductId(UUID customerId, UUID productId);
+    boolean existsByCustomerIdAndProductId(UUID customerId, UUID productId);
 }

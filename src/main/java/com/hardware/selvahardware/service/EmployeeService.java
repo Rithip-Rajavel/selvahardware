@@ -26,13 +26,13 @@ public class EmployeeService {
                 .stream().map(employeeMapper::toDto).collect(Collectors.toList());
     }
 
-    public EmployeeDto getById(String id) {
+    public EmployeeDto getById(UUID id) {
         return employeeMapper.toDto(employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", id)));
     }
 
     public EmployeeDto create(EmployeeRequest request) {
-        String id = UUID.randomUUID().toString();
+        UUID id = UUID.randomUUID();
         String code = (request.getCode() != null && !request.getCode().isBlank())
                 ? request.getCode().toUpperCase()
                 : generateCode();
@@ -43,14 +43,14 @@ public class EmployeeService {
         return employeeMapper.toDto(employeeRepository.save(employee));
     }
 
-    public EmployeeDto update(String id, EmployeeRequest request) {
+    public EmployeeDto update(UUID id, EmployeeRequest request) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", id));
         employeeMapper.updateEntity(employee, request);
         return employeeMapper.toDto(employeeRepository.save(employee));
     }
 
-    public void delete(String id) {
+    public void delete(UUID id) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", id));
         // Soft delete - just mark inactive

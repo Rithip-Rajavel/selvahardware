@@ -5,13 +5,14 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 public class PriceMappingDto {
-    private String id;
-    private String customerId;
-    private String productId;
+    private UUID id;
+    private UUID customerId;
+    private UUID productId;
     private BigDecimal lastPrice;
     private LocalDateTime updatedAt;
 }

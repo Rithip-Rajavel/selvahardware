@@ -3,6 +3,10 @@ package com.hardware.selvahardware.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
+import org.hibernate.annotations.GenericGenerator;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -16,16 +20,18 @@ public class Commission {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
     @Column(name = "contractor_id", length = 50, nullable = false)
-    private String contractorId;
+    private UUID contractorId;
 
     @Column(name = "contractor_name", nullable = false)
     private String contractorName;
 
     @Column(name = "invoice_id", length = 50, nullable = false)
-    private String invoiceId;
+    private UUID invoiceId;
 
     @Column(name = "invoice_number", length = 50, nullable = false)
     private String invoiceNumber;

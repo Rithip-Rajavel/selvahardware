@@ -6,12 +6,13 @@ import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Data
 public class AttendanceRequest {
 
     @NotNull
-    private String employeeId;
+    private UUID employeeId;
 
     @NotNull
     private LocalDate attendanceDate;

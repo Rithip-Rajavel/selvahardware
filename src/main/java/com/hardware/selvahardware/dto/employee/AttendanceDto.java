@@ -7,12 +7,13 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.UUID;
 
 @Data
 @Builder
 public class AttendanceDto {
-    private String id;
-    private String employeeId;
+    private UUID id;
+    private UUID employeeId;
     private String employeeName;
     private String employeeCode;
     private LocalDate attendanceDate;

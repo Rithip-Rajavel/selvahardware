@@ -8,17 +8,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface InvoiceRepository extends JpaRepository<Invoice, String> {
+public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
     Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
     boolean existsByInvoiceNumber(String invoiceNumber);
 
-    List<Invoice> findByCustomerIdOrderByCreatedAtAsc(String customerId);
+    List<Invoice> findByCustomerIdOrderByCreatedAtAsc(UUID customerId);
 
     @Query("SELECT i FROM Invoice i WHERE i.customer.id = :customerId AND i.status = 'pending' ORDER BY i.createdAt ASC")
     List<Invoice> findPendingInvoicesByCustomer(@Param("customerId") String customerId);
@@ -31,7 +32,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, String> {
            "(:toDate IS NULL OR i.createdAt <= :toDate) AND " +
            "(:search IS NULL OR LOWER(i.invoiceNumber) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(i.customerName) LIKE LOWER(CONCAT('%', :search, '%')))")
-    List<Invoice> filterInvoices(@Param("customerId") String customerId,
+    List<Invoice> filterInvoices(@Param("customerId") UUID customerId,
                                   @Param("status") InvoiceStatus status,
                                   @Param("billType") BillType billType,
                                   @Param("fromDate") LocalDateTime fromDate,

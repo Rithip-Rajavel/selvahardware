@@ -2,9 +2,11 @@ package com.hardware.selvahardware.entity;
 
 import com.hardware.selvahardware.enums.PaymentMethod;
 import com.hardware.selvahardware.enums.TransactionType;
+import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -18,7 +20,9 @@ public class Payment {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
@@ -30,7 +34,7 @@ public class Payment {
     private String customerName;
 
     @Column(name = "invoice_id", length = 50)
-    private String invoiceId;
+    private UUID invoiceId;
 
     @Column(name = "invoice_number", length = 50)
     private String invoiceNumber;

@@ -6,11 +6,12 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 public class EmployeeDto {
-    private String id;
+    private UUID id;
     private String name;
     private String code;
     private String phone;

@@ -8,16 +8,17 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 public class PaymentRequest {
     @NotBlank
-    private String customerId;
+    private UUID customerId;
 
     @NotBlank
     private String customerName;
 
-    private String invoiceId;
+    private UUID invoiceId;
     private String invoiceNumber;
 
     @NotNull

@@ -1,9 +1,11 @@
 package com.hardware.selvahardware.entity;
 
 import com.hardware.selvahardware.enums.*;
+import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,9 +20,11 @@ public class Invoice {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
-    @Column(name = "invoice_number", length = 50, unique = true, nullable = false)
+    @Column(name = "invoice_number", length = 50, unique = true, nullable = false, columnDefinition = "varchar(50)")
     private String invoiceNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -29,7 +33,7 @@ public class Invoice {
     @EqualsAndHashCode.Exclude
     private Customer customer;
 
-    @Column(name = "customer_name", nullable = false)
+    @Column(name = "customer_name", nullable = false, columnDefinition = "varchar(255)")
     private String customerName;
 
     @Column(name = "customer_phone", length = 20)

@@ -20,7 +20,7 @@ public class PriceMappingService {
     private final PriceMappingRepository priceMappingRepository;
     private final PriceMappingMapper priceMappingMapper;
 
-    public List<PriceMappingDto> getByCustomer(String customerId) {
+    public List<PriceMappingDto> getByCustomer(UUID customerId) {
         return priceMappingRepository.findByCustomerId(customerId)
                 .stream().map(priceMappingMapper::toDto).collect(Collectors.toList());
     }
@@ -28,21 +28,21 @@ public class PriceMappingService {
     public PriceMappingDto createOrUpdate(PriceMappingRequest request) {
         PriceMapping pm = priceMappingRepository
                 .findByCustomerIdAndProductId(request.getCustomerId(), request.getProductId())
-                .orElse(PriceMapping.builder().id(UUID.randomUUID().toString()).build());
+                .orElse(PriceMapping.builder().id(UUID.randomUUID()).build());
         pm.setCustomerId(request.getCustomerId());
         pm.setProductId(request.getProductId());
         pm.setLastPrice(request.getLastPrice());
         return priceMappingMapper.toDto(priceMappingRepository.save(pm));
     }
 
-    public PriceMappingDto update(String id, PriceMappingRequest request) {
+    public PriceMappingDto update(UUID id, PriceMappingRequest request) {
         PriceMapping pm = priceMappingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PriceMapping", id));
         pm.setLastPrice(request.getLastPrice());
         return priceMappingMapper.toDto(priceMappingRepository.save(pm));
     }
 
-    public void delete(String id) {
+    public void delete(UUID id) {
         if (!priceMappingRepository.existsById(id)) {
             throw new ResourceNotFoundException("PriceMapping", id);
         }

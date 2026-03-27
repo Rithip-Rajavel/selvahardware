@@ -10,27 +10,28 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface AttendanceRepository extends JpaRepository<Attendance, String> {
+public interface AttendanceRepository extends JpaRepository<Attendance, UUID> {
 
-    Optional<Attendance> findByEmployeeIdAndAttendanceDate(String employeeId, LocalDate date);
+    Optional<Attendance> findByEmployeeIdAndAttendanceDate(UUID employeeId, LocalDate date);
 
     List<Attendance> findByEmployeeIdAndAttendanceDateBetweenOrderByAttendanceDateDesc(
-            String employeeId, LocalDate from, LocalDate to);
+            UUID employeeId, LocalDate from, LocalDate to);
 
     List<Attendance> findByAttendanceDateBetweenOrderByAttendanceDateDesc(LocalDate from, LocalDate to);
 
     @Query("SELECT COUNT(a) FROM Attendance a WHERE a.employee.id = :empId " +
            "AND a.attendanceDate BETWEEN :from AND :to AND a.status = :status")
-    long countByEmployeeAndDateRangeAndStatus(@Param("empId") String empId,
+    long countByEmployeeAndDateRangeAndStatus(@Param("empId") UUID empId,
                                               @Param("from") LocalDate from,
                                               @Param("to") LocalDate to,
                                               @Param("status") AttendanceStatus status);
 
     @Query("SELECT COUNT(a) FROM Attendance a WHERE a.employee.id = :empId " +
            "AND a.attendanceDate BETWEEN :from AND :to")
-    long countByEmployeeAndDateRange(@Param("empId") String empId,
+    long countByEmployeeAndDateRange(@Param("empId") UUID empId,
                                      @Param("from") LocalDate from,
                                      @Param("to") LocalDate to);
 }

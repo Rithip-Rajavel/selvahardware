@@ -3,6 +3,10 @@ package com.hardware.selvahardware.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
+import org.hibernate.annotations.GenericGenerator;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -17,13 +21,15 @@ public class PriceMapping {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
     @Column(name = "customer_id", length = 50, nullable = false)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = "product_id", length = 50, nullable = false)
-    private String productId;
+    private UUID productId;
 
     @Column(name = "last_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal lastPrice;

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/invoices")
@@ -28,7 +29,7 @@ public class InvoiceController {
     @GetMapping
     @Operation(summary = "Get all invoices with optional filters")
     public ResponseEntity<ApiResponse<List<InvoiceDto>>> getAllInvoices(
-            @RequestParam(required = false) String customerId,
+            @RequestParam(required = false) UUID customerId,
             @RequestParam(required = false) InvoiceStatus status,
             @RequestParam(required = false) BillType billType,
             @RequestParam(required = false) String fromDate,
@@ -61,20 +62,20 @@ public class InvoiceController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get invoice by ID")
-    public ResponseEntity<ApiResponse<InvoiceDto>> getById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<InvoiceDto>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(invoiceService.getInvoiceById(id)));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Cancel/delete invoice")
-    public ResponseEntity<ApiResponse<Void>> deleteInvoice(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteInvoice(@PathVariable UUID id) {
         invoiceService.deleteInvoice(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Invoice deleted"));
     }
 
     @PostMapping("/{id}/pay")
     @Operation(summary = "Apply payment to invoice")
-    public ResponseEntity<ApiResponse<InvoiceDto>> payInvoice(@PathVariable String id,
+    public ResponseEntity<ApiResponse<InvoiceDto>> payInvoice(@PathVariable UUID id,
                                                                @Valid @RequestBody PayInvoiceRequest request) {
         return ResponseEntity.ok(ApiResponse.success(invoiceService.payInvoice(id, request)));
     }

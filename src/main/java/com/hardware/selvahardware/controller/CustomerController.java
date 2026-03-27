@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -42,27 +43,25 @@ public class CustomerController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get customer by ID")
-    public ResponseEntity<ApiResponse<CustomerDto>> getById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<CustomerDto>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(customerService.getCustomerById(id)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update customer details")
-    public ResponseEntity<ApiResponse<CustomerDto>> updateCustomer(@PathVariable String id,
-                                                                    @Valid @RequestBody CustomerRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(customerService.updateCustomer(id, request)));
+    public ResponseEntity<ApiResponse<CustomerDto>> updateCustomer(@PathVariable UUID id, @Valid @RequestBody CustomerRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(customerService.updateCustomer(id, request), "Customer updated"));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete customer (cannot delete walk-in)")
-    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable String id) {
+    @Operation(summary = "Delete customer")
+    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable UUID id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Customer deleted"));
     }
-
     @GetMapping("/{id}/balance")
     @Operation(summary = "Get customer balance summary")
-    public ResponseEntity<ApiResponse<CustomerBalanceDto>> getBalance(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<CustomerBalanceDto>> getBalance(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(customerService.getCustomerBalance(id)));
     }
 }

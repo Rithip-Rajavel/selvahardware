@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomerService {
 
-    private static final String WALK_IN_ID = "walk-in";
+    private static final UUID WALK_IN_ID = UUID.fromString("550e8400-e29b-41d4-a716-446655440002");
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
@@ -35,26 +35,26 @@ public class CustomerService {
                 .collect(Collectors.toList());
     }
 
-    public CustomerDto getCustomerById(String id) {
+    public CustomerDto getCustomerById(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", id));
         return customerMapper.toDto(customer);
     }
 
     public CustomerDto createCustomer(CustomerRequest request) {
-        String id = UUID.randomUUID().toString();
+        UUID id = UUID.randomUUID();
         Customer customer = customerMapper.toEntity(request, id);
         return customerMapper.toDto(customerRepository.save(customer));
     }
 
-    public CustomerDto updateCustomer(String id, CustomerRequest request) {
+    public CustomerDto updateCustomer(UUID id, CustomerRequest request) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", id));
         customerMapper.updateEntity(customer, request);
         return customerMapper.toDto(customerRepository.save(customer));
     }
 
-    public void deleteCustomer(String id) {
+    public void deleteCustomer(UUID id) {
         if (WALK_IN_ID.equals(id)) {
             throw new BusinessException("Cannot delete walk-in customer");
         }
@@ -64,7 +64,7 @@ public class CustomerService {
         customerRepository.deleteById(id);
     }
 
-    public CustomerBalanceDto getCustomerBalance(String customerId) {
+    public CustomerBalanceDto getCustomerBalance(UUID customerId) {
         if (!customerRepository.existsById(customerId)) {
             throw new ResourceNotFoundException("Customer", customerId);
         }

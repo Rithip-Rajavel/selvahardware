@@ -6,6 +6,7 @@ import com.hardware.selvahardware.enums.PaymentMethod;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,8 +14,8 @@ import java.util.List;
 @Data
 @Builder
 public class PendingBillDto {
-    private String id;
-    private String customerId;
+    private UUID id;
+    private UUID customerId;
     private String customerName;
     private CustomerType customerType;
     private PaymentMethod paymentMethod;

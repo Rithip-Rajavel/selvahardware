@@ -2,9 +2,11 @@ package com.hardware.selvahardware.entity;
 
 import com.hardware.selvahardware.enums.CustomerType;
 import com.hardware.selvahardware.enums.PaymentMethod;
+import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,10 +21,12 @@ public class PendingBill {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
     @Column(name = "customer_id", length = 50, nullable = false)
-    private String customerId;
+    private UUID customerId;
 
     @Column(name = "customer_name", nullable = false)
     private String customerName;

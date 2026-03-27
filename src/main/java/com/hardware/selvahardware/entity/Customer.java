@@ -1,9 +1,11 @@
 package com.hardware.selvahardware.entity;
 
 import com.hardware.selvahardware.enums.CustomerType;
+import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,9 +19,11 @@ public class Customer {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "varchar(255)")
     private String name;
 
     @Column(length = 20)

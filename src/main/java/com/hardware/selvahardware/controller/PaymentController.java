@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -27,7 +28,7 @@ public class PaymentController {
     @GetMapping
     @Operation(summary = "Get all payment transactions with optional filters")
     public ResponseEntity<ApiResponse<List<PaymentDto>>> getAll(
-            @RequestParam(required = false) String customerId,
+            @RequestParam(required = false) UUID customerId,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate) {
@@ -43,13 +44,13 @@ public class PaymentController {
 
     @GetMapping("/customer/{customerId}")
     @Operation(summary = "Get customer payment history")
-    public ResponseEntity<ApiResponse<List<PaymentDto>>> getByCustomer(@PathVariable String customerId) {
+    public ResponseEntity<ApiResponse<List<PaymentDto>>> getByCustomer(@PathVariable UUID customerId) {
         return ResponseEntity.ok(ApiResponse.success(paymentService.getCustomerPayments(customerId)));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete payment transaction")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         paymentService.deletePayment(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Payment deleted"));
     }

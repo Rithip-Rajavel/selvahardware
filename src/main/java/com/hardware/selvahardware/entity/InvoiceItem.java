@@ -1,9 +1,11 @@
 package com.hardware.selvahardware.entity;
 
 import com.hardware.selvahardware.enums.PricingType;
+import org.hibernate.annotations.GenericGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 
 @Entity
@@ -16,7 +18,9 @@ public class InvoiceItem {
 
     @Id
     @Column(length = 50)
-    private String id;
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id", nullable = false)
@@ -25,7 +29,7 @@ public class InvoiceItem {
     private Invoice invoice;
 
     @Column(name = "product_id", length = 50, nullable = false)
-    private String productId;
+    private UUID productId;
 
     @Column(name = "product_name", nullable = false)
     private String productName;

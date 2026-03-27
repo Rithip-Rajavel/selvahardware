@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -42,7 +43,7 @@ public class UserController {
     @PutMapping("/{id}")
     @Operation(summary = "Update user details")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserDto>> updateUser(@PathVariable String id,
+    public ResponseEntity<ApiResponse<UserDto>> updateUser(@PathVariable UUID id,
                                                             @Valid @RequestBody CreateUserRequest request) {
         return ResponseEntity.ok(ApiResponse.success(userService.updateUser(id, request)));
     }
@@ -50,7 +51,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user (admin only)")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success(null, "User deleted"));
     }

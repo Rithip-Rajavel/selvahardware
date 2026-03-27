@@ -3,6 +3,10 @@ package com.hardware.selvahardware.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.UUID;
+
+import org.hibernate.annotations.GenericGenerator;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -15,9 +19,10 @@ import java.time.LocalDateTime;
 public class ShopSettings {
 
     @Id
-    @Column(columnDefinition = "INT DEFAULT 1")
-    @Builder.Default
-    private Integer id = 1;
+    @Column(length = 50)
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    private UUID id;
 
     @Column(nullable = false)
     private String name;

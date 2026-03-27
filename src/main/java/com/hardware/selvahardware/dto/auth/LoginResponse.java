@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -16,7 +17,7 @@ public class LoginResponse {
     @Data
     @Builder
     public static class UserDto {
-        private String id;
+        private UUID id;
         private String name;
         private String email;
         private String role;

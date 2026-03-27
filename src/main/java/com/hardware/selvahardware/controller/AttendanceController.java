@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/attendance")
@@ -37,7 +38,7 @@ public class AttendanceController {
     @GetMapping("/employee/{employeeId}")
     @Operation(summary = "Get attendance records for an employee in a date range")
     public ResponseEntity<ApiResponse<List<AttendanceDto>>> getEmployeeAttendance(
-            @PathVariable String employeeId,
+            @PathVariable UUID employeeId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -55,7 +56,7 @@ public class AttendanceController {
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete attendance record (for corrections)")
-    public ResponseEntity<ApiResponse<Void>> deleteAttendance(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteAttendance(@PathVariable UUID id) {
         attendanceService.deleteAttendance(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Attendance record deleted"));
     }
@@ -63,7 +64,7 @@ public class AttendanceController {
     @GetMapping("/payroll/{employeeId}")
     @Operation(summary = "Calculate payroll with Loss of Pay for an employee (year+month)")
     public ResponseEntity<ApiResponse<PayrollSummaryDto>> getPayroll(
-            @PathVariable String employeeId,
+            @PathVariable UUID employeeId,
             @RequestParam int year,
             @RequestParam int month) {
         return ResponseEntity.ok(ApiResponse.success(

@@ -22,7 +22,7 @@ public class CommissionService {
     private final CommissionRepository commissionRepository;
     private final CommissionMapper commissionMapper;
 
-    public List<CommissionDto> getAll(String contractorId, String fromDate, String toDate) {
+    public List<CommissionDto> getAll(UUID contractorId, String fromDate, String toDate) {
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
         return commissionRepository.filterCommissions(contractorId, from, to)
@@ -31,7 +31,7 @@ public class CommissionService {
 
     public CommissionDto create(CommissionRequest request) {
         Commission commission = Commission.builder()
-                .id(UUID.randomUUID().toString())
+                .id(UUID.randomUUID())
                 .contractorId(request.getContractorId())
                 .contractorName(request.getContractorName())
                 .invoiceId(request.getInvoiceId())
@@ -42,12 +42,12 @@ public class CommissionService {
         return commissionMapper.toDto(commissionRepository.save(commission));
     }
 
-    public List<CommissionDto> getByContractor(String contractorId) {
+    public List<CommissionDto> getByContractor(UUID contractorId) {
         return commissionRepository.findByContractorIdOrderByCreatedAtDesc(contractorId)
                 .stream().map(commissionMapper::toDto).collect(Collectors.toList());
     }
 
-    public BigDecimal getTotalByContractor(String contractorId) {
+    public BigDecimal getTotalByContractor(UUID contractorId) {
         return commissionRepository.sumByContractorId(contractorId);
     }
 }

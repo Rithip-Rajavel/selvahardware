@@ -6,17 +6,18 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 public class CommissionRequest {
-    @NotBlank
-    private String contractorId;
+    @NotNull
+    private UUID contractorId;
 
     @NotBlank
     private String contractorName;
 
-    @NotBlank
-    private String invoiceId;
+    @NotNull
+    private UUID invoiceId;
 
     @NotBlank
     private String invoiceNumber;

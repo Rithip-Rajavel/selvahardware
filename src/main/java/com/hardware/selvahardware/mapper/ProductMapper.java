@@ -3,6 +3,9 @@ package com.hardware.selvahardware.mapper;
 import com.hardware.selvahardware.dto.product.ProductDto;
 import com.hardware.selvahardware.dto.product.ProductRequest;
 import com.hardware.selvahardware.entity.Product;
+
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,7 +29,7 @@ public class ProductMapper {
                 .build();
     }
 
-    public Product toEntity(ProductRequest req, String id) {
+    public Product toEntity(ProductRequest req, UUID id) {
         return Product.builder()
                 .id(id)
                 .name(req.getName())

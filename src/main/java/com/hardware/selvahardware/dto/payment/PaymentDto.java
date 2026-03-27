@@ -5,16 +5,17 @@ import com.hardware.selvahardware.enums.TransactionType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 public class PaymentDto {
-    private String id;
-    private String customerId;
+    private UUID id;
+    private UUID customerId;
     private String customerName;
-    private String invoiceId;
+    private UUID invoiceId;
     private String invoiceNumber;
     private TransactionType type;
     private BigDecimal amount;

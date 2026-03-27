@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/pending-bills")
@@ -39,20 +40,20 @@ public class PendingBillController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get pending bill by ID")
-    public ResponseEntity<ApiResponse<PendingBillDto>> getById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<PendingBillDto>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(pendingBillService.getById(id)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update pending bill")
-    public ResponseEntity<ApiResponse<PendingBillDto>> update(@PathVariable String id,
+    public ResponseEntity<ApiResponse<PendingBillDto>> update(@PathVariable UUID id,
                                                                @Valid @RequestBody PendingBillRequest request) {
         return ResponseEntity.ok(ApiResponse.success(pendingBillService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete pending bill")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         pendingBillService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Pending bill deleted"));
     }

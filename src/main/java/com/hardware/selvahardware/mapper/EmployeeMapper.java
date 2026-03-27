@@ -5,6 +5,9 @@ import com.hardware.selvahardware.dto.employee.EmployeeDto;
 import com.hardware.selvahardware.dto.employee.EmployeeRequest;
 import com.hardware.selvahardware.entity.Attendance;
 import com.hardware.selvahardware.entity.Employee;
+
+import java.util.UUID;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,7 +30,7 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public Employee toEntity(EmployeeRequest req, String id, String code) {
+    public Employee toEntity(EmployeeRequest req, UUID id, String code) {
         return Employee.builder()
                 .id(id)
                 .name(req.getName())

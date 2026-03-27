@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/commissions")
@@ -29,7 +30,7 @@ public class CommissionController {
     @GetMapping
     @Operation(summary = "Get all commissions with optional filters")
     public ResponseEntity<ApiResponse<List<CommissionDto>>> getAll(
-            @RequestParam(required = false) String contractorId,
+            @RequestParam(required = false) UUID contractorId,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate) {
         return ResponseEntity.ok(ApiResponse.success(commissionService.getAll(contractorId, fromDate, toDate)));
@@ -44,13 +45,13 @@ public class CommissionController {
 
     @GetMapping("/contractor/{contractorId}")
     @Operation(summary = "Get contractor commission history")
-    public ResponseEntity<ApiResponse<List<CommissionDto>>> getByContractor(@PathVariable String contractorId) {
+    public ResponseEntity<ApiResponse<List<CommissionDto>>> getByContractor(@PathVariable UUID contractorId) {
         return ResponseEntity.ok(ApiResponse.success(commissionService.getByContractor(contractorId)));
     }
 
     @GetMapping("/contractor/{contractorId}/total")
     @Operation(summary = "Get total commission for contractor")
-    public ResponseEntity<ApiResponse<Map<String, BigDecimal>>> getTotal(@PathVariable String contractorId) {
+    public ResponseEntity<ApiResponse<Map<String, BigDecimal>>> getTotal(@PathVariable UUID contractorId) {
         BigDecimal total = commissionService.getTotalByContractor(contractorId);
         return ResponseEntity.ok(ApiResponse.success(Map.of("total", total)));
     }

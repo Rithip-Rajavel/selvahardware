@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+
+import java.util.UUID;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,14 +25,14 @@ public class ReportController {
     @Operation(summary = "Get sales report")
     public ResponseEntity<ApiResponse<ReportService.SalesReport>> getSalesReport(
             @RequestParam(defaultValue = "month") String period,
-            @RequestParam(required = false) String customerId,
+            @RequestParam(required = false) UUID customerId,
             @RequestParam(required = false) String category) {
         return ResponseEntity.ok(ApiResponse.success(reportService.getSalesReport(period, customerId, category)));
     }
 
     @GetMapping("/ledger/{customerId}")
     @Operation(summary = "Get customer ledger")
-    public ResponseEntity<ApiResponse<ReportService.LedgerReport>> getLedger(@PathVariable String customerId) {
+    public ResponseEntity<ApiResponse<ReportService.LedgerReport>> getLedger(@PathVariable UUID customerId) {
         return ResponseEntity.ok(ApiResponse.success(reportService.getLedger(customerId)));
     }
 
@@ -44,7 +47,7 @@ public class ReportController {
     @GetMapping("/commissions")
     @Operation(summary = "Get commission report")
     public ResponseEntity<ApiResponse<ReportService.CommissionReport>> getCommissions(
-            @RequestParam(required = false) String contractorId,
+            @RequestParam(required = false) UUID contractorId,
             @RequestParam(required = false) String fromDate,
             @RequestParam(required = false) String toDate) {
         return ResponseEntity.ok(ApiResponse.success(reportService.getCommissionReport(contractorId, fromDate, toDate)));

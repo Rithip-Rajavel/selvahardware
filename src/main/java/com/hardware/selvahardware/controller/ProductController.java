@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/products")
@@ -48,27 +49,27 @@ public class ProductController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get product by ID")
-    public ResponseEntity<ApiResponse<ProductDto>> getById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<ProductDto>> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(productService.getProductById(id)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update product details")
-    public ResponseEntity<ApiResponse<ProductDto>> updateProduct(@PathVariable String id,
+    public ResponseEntity<ApiResponse<ProductDto>> updateProduct(@PathVariable UUID id,
                                                                   @Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(ApiResponse.success(productService.updateProduct(id, request)));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete product")
-    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable UUID id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Product deleted"));
     }
 
     @PutMapping("/{id}/stock")
     @Operation(summary = "Update product stock (add or subtract)")
-    public ResponseEntity<ApiResponse<ProductDto>> updateStock(@PathVariable String id,
+    public ResponseEntity<ApiResponse<ProductDto>> updateStock(@PathVariable UUID id,
                                                                 @Valid @RequestBody StockUpdateRequest request) {
         return ResponseEntity.ok(ApiResponse.success(productService.updateStock(id, request)));
     }

@@ -27,13 +27,13 @@ public class PendingBillService {
                 .map(pendingBillMapper::toDto).collect(Collectors.toList());
     }
 
-    public PendingBillDto getById(String id) {
+    public PendingBillDto getById(UUID id) {
         return pendingBillMapper.toDto(pendingBillRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PendingBill", id)));
     }
 
     public PendingBillDto create(PendingBillRequest request) {
-        String id = UUID.randomUUID().toString();
+        UUID id = UUID.randomUUID();
         PendingBill bill = PendingBill.builder()
                 .id(id)
                 .customerId(request.getCustomerId())
@@ -55,7 +55,7 @@ public class PendingBillService {
         return pendingBillMapper.toDto(pendingBillRepository.save(bill));
     }
 
-    public PendingBillDto update(String id, PendingBillRequest request) {
+    public PendingBillDto update(UUID id, PendingBillRequest request) {
         PendingBill bill = pendingBillRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PendingBill", id));
         bill.setCustomerId(request.getCustomerId());
@@ -74,7 +74,7 @@ public class PendingBillService {
         return pendingBillMapper.toDto(pendingBillRepository.save(bill));
     }
 
-    public void delete(String id) {
+    public void delete(UUID id) {
         if (!pendingBillRepository.existsById(id)) {
             throw new ResourceNotFoundException("PendingBill", id);
         }
@@ -83,7 +83,7 @@ public class PendingBillService {
 
     private List<PendingBillItem> mapItems(List<InvoiceItemRequest> reqs, PendingBill bill) {
         return reqs.stream().map(req -> PendingBillItem.builder()
-                .id(UUID.randomUUID().toString())
+                .id(UUID.randomUUID())
                 .pendingBill(bill)
                 .productId(req.getProductId())
                 .productName(req.getProductName())

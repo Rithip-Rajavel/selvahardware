@@ -4,12 +4,13 @@ import com.hardware.selvahardware.enums.UserRole;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 public class UserDto {
-    private String id;
+    private UUID id;
     private String name;
     private String email;
     private String phone;

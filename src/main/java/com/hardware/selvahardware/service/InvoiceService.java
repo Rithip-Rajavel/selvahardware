@@ -31,7 +31,7 @@ public class InvoiceService {
     private final PaymentRepository paymentRepository;
     private final PriceMappingRepository priceMappingRepository;
 
-    public List<InvoiceDto> getInvoices(String customerId, InvoiceStatus status, BillType billType,
+    public List<InvoiceDto> getInvoices(UUID customerId, InvoiceStatus status, BillType billType,
                                          String fromDate, String toDate, String search) {
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
@@ -46,7 +46,7 @@ public class InvoiceService {
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
 
         String invoiceNumber = generateInvoiceNumber(getSettings());
-        String id = UUID.randomUUID().toString();
+        UUID id = UUID.randomUUID();
 
         Invoice invoice = Invoice.builder()
                 .id(id)
@@ -70,7 +70,7 @@ public class InvoiceService {
                 .build();
 
         List<InvoiceItem> items = request.getItems().stream().map(itemReq -> {
-            InvoiceItem item = invoiceMapper.toItemEntity(itemReq, UUID.randomUUID().toString());
+            InvoiceItem item = invoiceMapper.toItemEntity(itemReq, UUID.randomUUID());
             item.setInvoice(invoice);
             return item;
         }).collect(Collectors.toList());
@@ -88,15 +88,15 @@ public class InvoiceService {
                 });
 
                 // Update price mapping
-                String customerId = request.getCustomerId();
-                String productId = itemReq.getProductId();
+                UUID customerId = request.getCustomerId();
+                UUID productId = itemReq.getProductId();
                 priceMappingRepository.findByCustomerIdAndProductId(customerId, productId)
                         .ifPresentOrElse(pm -> {
                             pm.setLastPrice(itemReq.getPrice());
                             priceMappingRepository.save(pm);
                         }, () -> {
                             PriceMapping pm = PriceMapping.builder()
-                                    .id(UUID.randomUUID().toString())
+                                    .id(UUID.randomUUID())
                                     .customerId(customerId)
                                     .productId(productId)
                                     .lastPrice(itemReq.getPrice())
@@ -108,7 +108,7 @@ public class InvoiceService {
             // Record billing transaction
             BigDecimal customerBalance = getCustomerBalance(customer.getId());
             Payment billingTx = Payment.builder()
-                    .id(UUID.randomUUID().toString())
+                    .id(UUID.randomUUID())
                     .customer(customer)
                     .customerName(request.getCustomerName())
                     .invoiceId(id)
@@ -125,13 +125,13 @@ public class InvoiceService {
         return invoiceMapper.toDto(saved);
     }
 
-    public InvoiceDto getInvoiceById(String id) {
+    public InvoiceDto getInvoiceById(UUID id) {
         return invoiceMapper.toDto(invoiceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", id)));
     }
 
     @Transactional
-    public InvoiceDto payInvoice(String id, PayInvoiceRequest request) {
+    public InvoiceDto payInvoice(UUID id, PayInvoiceRequest request) {
         Invoice invoice = invoiceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice", id));
 
@@ -151,7 +151,7 @@ public class InvoiceService {
         // Record payment transaction
         BigDecimal currentTotalBalance = getCustomerBalance(invoice.getCustomer().getId());
         Payment paymentTx = Payment.builder()
-                .id(UUID.randomUUID().toString())
+                .id(UUID.randomUUID())
                 .customer(invoice.getCustomer())
                 .customerName(invoice.getCustomerName())
                 .invoiceId(id)
@@ -167,7 +167,7 @@ public class InvoiceService {
         return invoiceMapper.toDto(saved);
     }
 
-    public void deleteInvoice(String id) {
+    public void deleteInvoice(UUID id) {
         if (!invoiceRepository.existsById(id)) {
             throw new ResourceNotFoundException("Invoice", id);
         }
@@ -220,7 +220,7 @@ public class InvoiceService {
         return "INV"; // Default prefix; inject SettingsService if needed
     }
 
-    private BigDecimal getCustomerBalance(String customerId) {
+    private BigDecimal getCustomerBalance(UUID customerId) {
         List<Invoice> invoices = invoiceRepository.findByCustomerIdOrderByCreatedAtAsc(customerId);
         return invoices.stream().map(Invoice::getBalance).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
