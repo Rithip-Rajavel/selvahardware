@@ -119,6 +119,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>selvahardware</finalName>
 	</build>
 
 </project>
