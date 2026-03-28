@@ -9,7 +9,9 @@ import com.hardware.selvahardware.exception.ResourceNotFoundException;
 import com.hardware.selvahardware.mapper.PendingBillMapper;
 import com.hardware.selvahardware.repository.PendingBillRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
+@Transactional(readOnly = true)
 public class PendingBillService {
 
     private final PendingBillRepository pendingBillRepository;
@@ -28,14 +32,19 @@ public class PendingBillService {
     }
 
     public PendingBillDto getById(UUID id) {
-        return pendingBillMapper.toDto(pendingBillRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("PendingBill", id)));
+        PendingBill bill = pendingBillRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("PendingBill", id));
+        // Initialize the lazy collection before mapping
+        if (bill.getItems() != null) {
+            bill.getItems().size(); // This forces initialization of the lazy collection
+        }
+        return pendingBillMapper.toDto(bill);
     }
 
+    @Transactional
     public PendingBillDto create(PendingBillRequest request) {
-        UUID id = UUID.randomUUID();
+        log.info("Creating pending bill for customer: {}", request.getCustomerId());
         PendingBill bill = PendingBill.builder()
-                .id(id)
                 .customerId(request.getCustomerId())
                 .customerName(request.getCustomerName())
                 .customerType(request.getCustomerType())
@@ -52,12 +61,17 @@ public class PendingBillService {
             bill.setItems(items);
         }
 
-        return pendingBillMapper.toDto(pendingBillRepository.save(bill));
+        PendingBill savedBill = pendingBillRepository.save(bill);
+        log.info("Pending bill created successfully with id: {}", savedBill.getId());
+        return pendingBillMapper.toDto(savedBill);
     }
 
+    @Transactional
     public PendingBillDto update(UUID id, PendingBillRequest request) {
+        log.info("Updating pending bill with id: {}", id);
         PendingBill bill = pendingBillRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PendingBill", id));
+        
         bill.setCustomerId(request.getCustomerId());
         bill.setCustomerName(request.getCustomerName());
         bill.setCustomerType(request.getCustomerType());
@@ -67,18 +81,29 @@ public class PendingBillService {
         bill.setEndCustomerName(request.getEndCustomerName());
         bill.setCommission(request.getCommission());
         bill.setNotes(request.getNotes());
+        
         if (request.getItems() != null) {
-            bill.getItems().clear();
+            if (bill.getItems() != null) {
+                bill.getItems().clear();
+            } else {
+                bill.setItems(List.of());
+            }
             bill.getItems().addAll(mapItems(request.getItems(), bill));
         }
-        return pendingBillMapper.toDto(pendingBillRepository.save(bill));
+        
+        PendingBill savedBill = pendingBillRepository.save(bill);
+        log.info("Pending bill updated successfully with id: {}", savedBill.getId());
+        return pendingBillMapper.toDto(savedBill);
     }
 
+    @Transactional
     public void delete(UUID id) {
+        log.info("Deleting pending bill with id: {}", id);
         if (!pendingBillRepository.existsById(id)) {
             throw new ResourceNotFoundException("PendingBill", id);
         }
         pendingBillRepository.deleteById(id);
+        log.info("Pending bill deleted successfully with id: {}", id);
     }
 
     private List<PendingBillItem> mapItems(List<InvoiceItemRequest> reqs, PendingBill bill) {

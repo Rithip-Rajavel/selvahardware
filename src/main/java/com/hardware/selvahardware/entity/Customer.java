@@ -54,6 +54,16 @@ public class Customer {
     @EqualsAndHashCode.Exclude
     private List<Payment> payments;
 
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Bonus> bonuses;
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<LastPaymentValue> lastPaymentValues;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

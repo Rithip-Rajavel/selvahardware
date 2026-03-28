@@ -47,6 +47,11 @@ public class AuthService {
         return switch (role) {
             case admin -> List.of("dashboard", "billing", "products", "customers", "invoices", "reports", "admin", "settings");
             case staff -> List.of("dashboard", "billing", "products", "customers", "invoices");
+            case owner -> List.of("dashboard", "billing", "products", "customers", "invoices", "reports", "admin", "settings");
+            case manager -> List.of("dashboard", "billing", "products", "customers", "invoices", "reports");
+            case accountant -> List.of("dashboard", "billing", "products", "customers", "invoices", "reports");
+            case employee -> List.of("dashboard", "billing", "products", "customers", "invoices");
+            case superadmin -> List.of("dashboard", "billing", "products", "customers", "invoices", "reports", "admin", "settings");
         };
     }
 }
