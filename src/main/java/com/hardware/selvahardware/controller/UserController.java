@@ -2,6 +2,7 @@ package com.hardware.selvahardware.controller;
 
 import com.hardware.selvahardware.dto.ApiResponse;
 import com.hardware.selvahardware.dto.user.CreateUserRequest;
+import com.hardware.selvahardware.dto.user.UpdateUserRequest;
 import com.hardware.selvahardware.dto.user.UserDto;
 import com.hardware.selvahardware.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,7 +45,7 @@ public class UserController {
     @Operation(summary = "Update user details")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(@PathVariable UUID id,
-                                                            @Valid @RequestBody CreateUserRequest request) {
+                                                            @Valid @RequestBody UpdateUserRequest request) {
         return ResponseEntity.ok(ApiResponse.success(userService.updateUser(id, request)));
     }
 
