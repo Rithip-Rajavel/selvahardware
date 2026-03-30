@@ -3,6 +3,12 @@
 -- by Hibernate 6. Safe to run on startup (casts existing data).
 -- Use standard SQL functions instead of PostgreSQL-specific lower(bytea)
 
+-- Update user role check constraint to include new roles
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users 
+ADD CONSTRAINT users_role_check 
+CHECK (role IN ('admin', 'staff', 'owner', 'manager', 'accountant', 'employee', 'superadmin'));
+
 -- products table
 -- products table
 -- ALTER TABLE products
