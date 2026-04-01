@@ -33,7 +33,10 @@ public class Product {
     private String barcode;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    private BigDecimal price; // This will be the selling price
+
+    @Column(name = "original_amount", precision = 10, scale = 2)
+    private BigDecimal originalAmount; // Cost price
 
     @Column(columnDefinition = "INT DEFAULT 0")
     private int stock;

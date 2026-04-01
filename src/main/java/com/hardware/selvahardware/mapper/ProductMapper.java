@@ -18,7 +18,8 @@ public class ProductMapper {
                 .name(product.getName())
                 .code(product.getCode())
                 .barcode(product.getBarcode())
-                .price(product.getPrice())
+                .price(product.getPrice()) // Selling price
+                .originalAmount(product.getOriginalAmount()) // Cost price
                 .stock(product.getStock())
                 .unit(product.getUnit())
                 .gstPercentage(product.getGstPercentage())
@@ -35,7 +36,8 @@ public class ProductMapper {
                 .name(req.getName())
                 .code(req.getCode())
                 .barcode(req.getBarcode())
-                .price(req.getPrice() != null ? BigDecimal.valueOf(req.getPrice()) : null)
+                .price(req.getPrice() != null ? BigDecimal.valueOf(req.getPrice()) : null) // Selling price
+                .originalAmount(req.getOriginalAmount() != null ? BigDecimal.valueOf(req.getOriginalAmount()) : null) // Cost price
                 .stock(req.getStock())
                 .unit(req.getUnit())
                 .gstPercentage(req.getGstPercentage() != null ? BigDecimal.valueOf(req.getGstPercentage()) : null)
@@ -49,7 +51,8 @@ public class ProductMapper {
         product.setName(req.getName());
         product.setCode(req.getCode());
         product.setBarcode(req.getBarcode());
-        product.setPrice(req.getPrice() != null ? BigDecimal.valueOf(req.getPrice()) : null);
+        product.setPrice(req.getPrice() != null ? BigDecimal.valueOf(req.getPrice()) : null); // Selling price
+        product.setOriginalAmount(req.getOriginalAmount() != null ? BigDecimal.valueOf(req.getOriginalAmount()) : null); // Cost price
         product.setStock(req.getStock());
         product.setUnit(req.getUnit());
         product.setGstPercentage(req.getGstPercentage() != null ? BigDecimal.valueOf(req.getGstPercentage()) : null);

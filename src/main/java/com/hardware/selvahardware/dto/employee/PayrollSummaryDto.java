@@ -28,4 +28,5 @@ public class PayrollSummaryDto {
     private BigDecimal lossOfPayAmount;
     private BigDecimal netPayableSalary;
     private List<AttendanceDto> attendanceDetails;
+    private int allowedLeaves; // Number of allowed leaves for the month
 }

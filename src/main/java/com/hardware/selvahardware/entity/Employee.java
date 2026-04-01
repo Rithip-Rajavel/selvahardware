@@ -28,8 +28,7 @@ public class Employee {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
-    private String code; // EMP001
+    private String code; // EMP001 - made nullable, will be auto-generated if blank
 
     private String phone;
     private String email;

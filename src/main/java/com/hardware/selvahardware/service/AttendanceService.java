@@ -67,6 +67,23 @@ public class AttendanceService {
     }
 
     /**
+     * Get entire month attendance for an employee in one API call.
+     */
+    public List<AttendanceDto> getEmployeeMonthlyAttendance(UUID employeeId, int year, int month) {
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new ResourceNotFoundException("Employee", employeeId);
+        }
+        
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate from = yearMonth.atDay(1);
+        LocalDate to = yearMonth.atEndOfMonth();
+        
+        return attendanceRepository
+                .findByEmployeeIdAndAttendanceDateBetweenWithEmployee(employeeId, from, to)
+                .stream().map(employeeMapper::toAttendanceDto).collect(Collectors.toList());
+    }
+
+    /**
      * Get all employees' attendance for a specific date (for daily view).
      */
     public List<AttendanceDto> getDailyAttendance(LocalDate date) {
@@ -91,10 +108,12 @@ public class AttendanceService {
      * LOP (Loss of Pay) Logic:
      * - Total working days = calendar days in month (excluding Sundays by default, configurable)
      * - Per day salary = monthlySalary / totalWorkingDays
-     * - LOP days = absentDays + (halfDays * 0.5)
+     * - LOP days = absentDays + (halfDays * 0.5) - allowedLeaves
+     * - If absentDays <= allowedLeaves: No deduction (full salary)
+     * - If absentDays > allowedLeaves: Deduct only for extra absent days
      * - Net salary = monthlySalary - (LOP days * perDaySalary)
      */
-    public PayrollSummaryDto calculatePayroll(UUID employeeId, int year, int month) {
+    public PayrollSummaryDto calculatePayroll(UUID employeeId, int year, int month, Integer allowedLeaves) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", employeeId));
 
@@ -129,9 +148,23 @@ public class AttendanceService {
                 ? monthlySalary.divide(workingDaysBD, 4, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        // Loss of pay days: absent = full day, half_day = 0.5 day
-        BigDecimal lopDays = BigDecimal.valueOf(absentDays)
-                .add(BigDecimal.valueOf(halfDays).multiply(BigDecimal.valueOf(0.5)));
+        // Calculate LOP days with allowed leaves consideration
+        BigDecimal lopDays;
+        if (allowedLeaves != null && allowedLeaves > 0) {
+            // If absent days are within allowed leaves, no deduction
+            if (absentDays <= allowedLeaves) {
+                lopDays = BigDecimal.valueOf(halfDays).multiply(BigDecimal.valueOf(0.5));
+            } else {
+                // Only deduct for extra absent days beyond allowed leaves
+                int extraAbsentDays = absentDays - allowedLeaves;
+                lopDays = BigDecimal.valueOf(extraAbsentDays)
+                        .add(BigDecimal.valueOf(halfDays).multiply(BigDecimal.valueOf(0.5)));
+            }
+        } else {
+            // Original logic when no allowed leaves specified
+            lopDays = BigDecimal.valueOf(absentDays)
+                    .add(BigDecimal.valueOf(halfDays).multiply(BigDecimal.valueOf(0.5)));
+        }
 
         BigDecimal lopAmount = lopDays.multiply(perDaySalary).setScale(2, RoundingMode.HALF_UP);
         BigDecimal netSalary = monthlySalary.subtract(lopAmount).max(BigDecimal.ZERO);
@@ -157,7 +190,13 @@ public class AttendanceService {
                 .lossOfPayAmount(lopAmount)
                 .netPayableSalary(netSalary)
                 .attendanceDetails(attendanceDtos)
+                .allowedLeaves(allowedLeaves != null ? allowedLeaves : 0)
                 .build();
+    }
+
+    // Overloaded method for backward compatibility
+    public PayrollSummaryDto calculatePayroll(UUID employeeId, int year, int month) {
+        return calculatePayroll(employeeId, year, month, null);
     }
 
     /**

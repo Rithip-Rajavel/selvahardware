@@ -18,7 +18,10 @@ public class ProductRequest {
 
     @NotNull
     @DecimalMin("0.01")
-    private Double price;
+    private Double price; // Selling price
+
+    @DecimalMin("0.0")
+    private Double originalAmount; // Cost price (optional)
 
     @Min(0)
     private int stock;

@@ -4,12 +4,16 @@ import com.hardware.selvahardware.dto.product.ProductDto;
 import com.hardware.selvahardware.dto.product.ProductRequest;
 import com.hardware.selvahardware.dto.product.StockUpdateRequest;
 import com.hardware.selvahardware.entity.Product;
+import com.hardware.selvahardware.entity.LastPaymentValue;
 import com.hardware.selvahardware.exception.BusinessException;
 import com.hardware.selvahardware.exception.ResourceNotFoundException;
 import com.hardware.selvahardware.mapper.ProductMapper;
 import com.hardware.selvahardware.repository.ProductRepository;
+import com.hardware.selvahardware.repository.LastPaymentValueRepository;
+import com.hardware.selvahardware.repository.PriceMappingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,6 +25,8 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final LastPaymentValueRepository lastPaymentValueRepository;
+    private final PriceMappingRepository priceMappingRepository;
 
     public List<ProductDto> getAllProducts(String category, String search, boolean lowStock) {
         if (lowStock) {
@@ -51,10 +57,25 @@ public class ProductService {
         return productMapper.toDto(productRepository.save(product));
     }
 
+    @Transactional
     public void deleteProduct(UUID id) {
         if (!productRepository.existsById(id)) {
             throw new ResourceNotFoundException("Product", id);
         }
+        
+        // Clean up related data
+        // 1. Delete all references in last_payment_values
+        List<LastPaymentValue> references = lastPaymentValueRepository.findLastPaymentValuesByProduct(id);
+        if (!references.isEmpty()) {
+            for (LastPaymentValue ref : references) {
+                lastPaymentValueRepository.delete(ref);
+            }
+        }
+        
+        // 2. Delete all references in price_mapping
+        priceMappingRepository.deleteByProductId(id);
+
+        // 3. Finally delete the product
         productRepository.deleteById(id);
     }
 

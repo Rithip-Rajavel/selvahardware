@@ -15,7 +15,8 @@ public class ProductDto {
     private String name;
     private String code;
     private String barcode;
-    private BigDecimal price;
+    private BigDecimal price; // Selling price
+    private BigDecimal originalAmount; // Cost price
     private int stock;
     private String unit;
     private BigDecimal gstPercentage;

@@ -45,6 +45,16 @@ public class AttendanceController {
                 attendanceService.getEmployeeAttendance(employeeId, from, to)));
     }
 
+    @GetMapping("/employee/{employeeId}/monthly/{year}/{month}")
+    @Operation(summary = "Get entire month attendance for an employee in one API call")
+    public ResponseEntity<ApiResponse<List<AttendanceDto>>> getEmployeeMonthlyAttendance(
+            @PathVariable UUID employeeId,
+            @PathVariable int year,
+            @PathVariable int month) {
+        return ResponseEntity.ok(ApiResponse.success(
+                attendanceService.getEmployeeMonthlyAttendance(employeeId, year, month)));
+    }
+
     @GetMapping("/daily")
     @Operation(summary = "Get all employees' attendance for a specific date")
     public ResponseEntity<ApiResponse<List<AttendanceDto>>> getDailyAttendance(
@@ -66,8 +76,9 @@ public class AttendanceController {
     public ResponseEntity<ApiResponse<PayrollSummaryDto>> getPayroll(
             @PathVariable UUID employeeId,
             @RequestParam int year,
-            @RequestParam int month) {
+            @RequestParam int month,
+            @RequestParam(required = false) Integer allowedLeaves) {
         return ResponseEntity.ok(ApiResponse.success(
-                attendanceService.calculatePayroll(employeeId, year, month)));
+                attendanceService.calculatePayroll(employeeId, year, month, allowedLeaves)));
     }
 }
