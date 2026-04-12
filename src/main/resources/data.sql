@@ -3,11 +3,8 @@
 -- by Hibernate 6. Safe to run on startup (casts existing data).
 -- Use standard SQL functions instead of PostgreSQL-specific lower(bytea)
 
--- Update user role check constraint to include new roles
-ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
-ALTER TABLE users 
-ADD CONSTRAINT users_role_check 
-CHECK (role IN ('admin', 'staff', 'owner', 'manager', 'accountant', 'employee', 'superadmin'));
+-- Note: Constraint handling is now managed by Hibernate via JPA annotations
+-- The User entity will handle role validation through enum constraints
 
 -- products table
 -- products table
@@ -55,7 +52,14 @@ VALUES (
     true,
     NOW(),
     NOW()
-) ON CONFLICT (id) DO NOTHING;
+) ON DUPLICATE KEY UPDATE 
+    name = VALUES(name),
+    email = VALUES(email),
+    password_hash = VALUES(password_hash),
+    phone = VALUES(phone),
+    role = VALUES(role),
+    is_active = VALUES(is_active),
+    updated_at = VALUES(updated_at);
 
 -- Walk-in customer (required - cannot be deleted)
 INSERT INTO customers (id, name, phone, email, address, type, created_at, updated_at)
@@ -68,6 +72,12 @@ VALUES (
     'customer',
     NOW(),
     NOW()
-) ON CONFLICT (id) DO NOTHING;
+) ON DUPLICATE KEY UPDATE 
+    name = VALUES(name),
+    phone = VALUES(phone),
+    email = VALUES(email),
+    address = VALUES(address),
+    type = VALUES(type),
+    updated_at = VALUES(updated_at);
 
 -- ===========================================================
