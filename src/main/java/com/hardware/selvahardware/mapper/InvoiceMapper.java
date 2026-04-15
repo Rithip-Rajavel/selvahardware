@@ -28,6 +28,8 @@ public class InvoiceMapper {
                 .customerPhone(invoice.getCustomerPhone())
                 .customerType(invoice.getCustomerType())
                 .endCustomerName(invoice.getEndCustomerName())
+                .contractorId(invoice.getContractor() != null ? invoice.getContractor().getId() : null)
+                .contractorName(invoice.getContractorName())
                 .commission(invoice.getCommission())
                 .subtotal(invoice.getSubtotal())
                 .totalDiscount(invoice.getTotalDiscount())

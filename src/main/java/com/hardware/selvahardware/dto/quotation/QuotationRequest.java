@@ -28,7 +28,8 @@ public class QuotationRequest {
     private CustomerType customerType;
 
     private String endCustomerName;
-
+    private UUID contractorId;
+    private String contractorName;
     private BigDecimal commission;
 
     @NotNull(message = "Items list is required")

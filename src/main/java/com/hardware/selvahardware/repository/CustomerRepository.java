@@ -15,9 +15,11 @@ import java.util.UUID;
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     List<Customer> findByType(CustomerType type);
 
+    List<Customer> findByContractorId(UUID contractorId);
+
     @Query("SELECT c FROM Customer c WHERE " +
-           "(:type IS NULL OR c.type = :type) AND " +
-           "(:search IS NULL OR c.name ILIKE CONCAT('%', cast(:search as text), '%') " +
-           "OR c.phone LIKE CONCAT('%', cast(:search as text), '%'))")
+            "(:type IS NULL OR c.type = :type) AND " +
+            "(:search IS NULL OR c.name ILIKE CONCAT('%', cast(:search as text), '%') " +
+            "OR c.phone LIKE CONCAT('%', cast(:search as text), '%'))")
     List<Customer> searchCustomers(@Param("type") CustomerType type, @Param("search") String search);
 }

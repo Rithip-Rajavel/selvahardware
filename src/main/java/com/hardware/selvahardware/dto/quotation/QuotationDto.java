@@ -21,6 +21,8 @@ public class QuotationDto {
     private String customerPhone;
     private CustomerType customerType;
     private String endCustomerName;
+    private UUID contractorId;
+    private String contractorName;
     private BigDecimal commission;
     private BigDecimal subtotal;
     private BigDecimal totalDiscount;

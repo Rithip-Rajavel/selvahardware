@@ -32,61 +32,61 @@ public class InvoiceService {
     private final PriceMappingRepository priceMappingRepository;
 
     public List<InvoiceDto> getInvoices(UUID customerId, InvoiceStatus status, BillType billType,
-                                         String fromDate, String toDate, String search) {
-        
+            String fromDate, String toDate, String search) {
+
         // If no filters provided, return all invoices directly
-        if (customerId == null && status == null && billType == null && 
-            fromDate == null && toDate == null && (search == null || search.trim().isEmpty())) {
+        if (customerId == null && status == null && billType == null &&
+                fromDate == null && toDate == null && (search == null || search.trim().isEmpty())) {
             return invoiceRepository.findAllInvoicesWithItems().stream()
                     .map(invoiceMapper::toDto)
                     .collect(Collectors.toList());
         }
-        
+
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
 
         // Start with all invoices and apply filters dynamically
         List<Invoice> invoices = invoiceRepository.findAllInvoicesWithItems();
-        
+
         // Apply filters in Java to avoid PostgreSQL parameter type issues
         if (customerId != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getCustomer().getId().equals(customerId))
                     .collect(Collectors.toList());
         }
-        
+
         if (status != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getStatus().equals(status))
                     .collect(Collectors.toList());
         }
-        
+
         if (billType != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getBillType().equals(billType))
                     .collect(Collectors.toList());
         }
-        
+
         if (from != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getCreatedAt().isAfter(from) || invoice.getCreatedAt().isEqual(from))
                     .collect(Collectors.toList());
         }
-        
+
         if (to != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getCreatedAt().isBefore(to) || invoice.getCreatedAt().isEqual(to))
                     .collect(Collectors.toList());
         }
-        
+
         if (search != null && !search.trim().isEmpty()) {
             String searchLower = search.toLowerCase();
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getInvoiceNumber().toLowerCase().contains(searchLower) ||
-                                    invoice.getCustomerName().toLowerCase().contains(searchLower))
+                            invoice.getCustomerName().toLowerCase().contains(searchLower))
                     .collect(Collectors.toList());
         }
-        
+
         return invoices.stream().map(invoiceMapper::toDto).collect(Collectors.toList());
     }
 
@@ -94,6 +94,13 @@ public class InvoiceService {
     public InvoiceDto createInvoice(InvoiceRequest request) {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
+
+        // Fetch contractor if contractorId is provided
+        Customer contractor = null;
+        if (request.getContractorId() != null) {
+            contractor = customerRepository.findById(request.getContractorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Contractor", request.getContractorId()));
+        }
 
         String invoiceNumber = generateInvoiceNumber(getSettings());
 
@@ -104,6 +111,8 @@ public class InvoiceService {
                 .customerPhone(request.getCustomerPhone())
                 .customerType(request.getCustomerType())
                 .endCustomerName(request.getEndCustomerName())
+                .contractor(contractor)
+                .contractorName(request.getContractorName())
                 .commission(request.getCommission())
                 .subtotal(request.getSubtotal())
                 .totalDiscount(request.getTotalDiscount())
@@ -256,7 +265,8 @@ public class InvoiceService {
         if (lastNumber != null && lastNumber.length() > prefix.length() + 4) {
             try {
                 counter = Integer.parseInt(lastNumber.substring(prefix.length() + 4)) + 1;
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
         return prefix + yearMonth + String.format("%04d", counter);
     }

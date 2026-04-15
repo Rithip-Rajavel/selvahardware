@@ -27,6 +27,7 @@ public class ProductService {
     private final ProductMapper productMapper;
     private final LastPaymentValueRepository lastPaymentValueRepository;
     private final PriceMappingRepository priceMappingRepository;
+    private final ProductAuditService productAuditService;
 
     public List<ProductDto> getAllProducts(String category, String search, boolean lowStock) {
         if (lowStock) {
@@ -47,7 +48,12 @@ public class ProductService {
             throw new BusinessException("Product code already exists: " + request.getCode());
         }
         Product product = productMapper.toEntity(request, null);
-        return productMapper.toDto(productRepository.save(product));
+        Product savedProduct = productRepository.save(product);
+
+        // Log product creation
+        productAuditService.logProductCreation(savedProduct, null, "System");
+
+        return productMapper.toDto(savedProduct);
     }
 
     public ProductDto updateProduct(UUID id, ProductRequest request) {
@@ -62,7 +68,7 @@ public class ProductService {
         if (!productRepository.existsById(id)) {
             throw new ResourceNotFoundException("Product", id);
         }
-        
+
         // Clean up related data
         // 1. Delete all references in last_payment_values
         List<LastPaymentValue> references = lastPaymentValueRepository.findLastPaymentValuesByProduct(id);
@@ -71,7 +77,7 @@ public class ProductService {
                 lastPaymentValueRepository.delete(ref);
             }
         }
-        
+
         // 2. Delete all references in price_mapping
         priceMappingRepository.deleteByProductId(id);
 
@@ -80,6 +86,12 @@ public class ProductService {
     }
 
     public ProductDto updateStock(UUID id, StockUpdateRequest request) {
+        return updateStock(id, request, null, "System", null);
+    }
+
+    @Transactional
+    public ProductDto updateStock(UUID id, StockUpdateRequest request, java.math.BigDecimal cashAmount,
+            String performedByName, String notes) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
 
@@ -89,8 +101,11 @@ public class ProductService {
             if (newStock < 0) {
                 throw new BusinessException("Insufficient stock. Available: " + product.getStock());
             }
+            productAuditService.logStockDecrease(product, request.getQuantity(), null, performedByName, cashAmount,
+                    notes);
         } else {
             newStock = product.getStock() + request.getQuantity();
+            productAuditService.logStockIncrease(product, request.getQuantity(), null, performedByName, notes);
         }
         product.setStock(newStock);
         return productMapper.toDto(productRepository.save(product));
@@ -99,5 +114,25 @@ public class ProductService {
     public ProductDto searchByCodeOrBarcode(String q) {
         return productMapper.toDto(productRepository.findByCodeOrBarcode(q)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with code/barcode: " + q)));
+    }
+
+    @Transactional
+    public ProductDto updatePrice(UUID id, com.hardware.selvahardware.dto.product.PriceUpdateRequest request) {
+        return updatePrice(id, request, null, "System");
+    }
+
+    @Transactional
+    public ProductDto updatePrice(UUID id, com.hardware.selvahardware.dto.product.PriceUpdateRequest request,
+            UUID performedBy, String performedByName) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", id));
+
+        java.math.BigDecimal oldPrice = product.getPrice();
+        java.math.BigDecimal newPrice = request.getNewPrice();
+
+        productAuditService.logPriceUpdate(product, oldPrice, newPrice, performedBy, performedByName,
+                request.getNotes());
+
+        return productMapper.toDto(product);
     }
 }

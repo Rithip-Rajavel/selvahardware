@@ -19,6 +19,7 @@ public class CustomerMapper {
                 .email(customer.getEmail())
                 .address(customer.getAddress())
                 .type(customer.getType())
+                .contractorId(customer.getContractorId())
                 .createdAt(customer.getCreatedAt())
                 .updatedAt(customer.getUpdatedAt())
                 .build();
@@ -31,6 +32,7 @@ public class CustomerMapper {
                 .email(req.getEmail())
                 .address(req.getAddress())
                 .type(req.getType())
+                .contractorId(req.getContractorId())
                 .build();
     }
 
@@ -40,5 +42,6 @@ public class CustomerMapper {
         customer.setEmail(req.getEmail());
         customer.setAddress(req.getAddress());
         customer.setType(req.getType());
+        customer.setContractorId(req.getContractorId());
     }
 }

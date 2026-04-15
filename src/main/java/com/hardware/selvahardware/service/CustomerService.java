@@ -35,6 +35,12 @@ public class CustomerService {
                 .collect(Collectors.toList());
     }
 
+    public List<CustomerDto> getCustomersByContractor(UUID contractorId) {
+        return customerRepository.findByContractorId(contractorId).stream()
+                .map(customerMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
     public CustomerDto getCustomerById(UUID id) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", id));

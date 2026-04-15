@@ -25,6 +25,8 @@ public class InvoiceRequest {
     private CustomerType customerType;
 
     private String endCustomerName;
+    private UUID contractorId;
+    private String contractorName;
     private BigDecimal commission;
 
     @NotEmpty

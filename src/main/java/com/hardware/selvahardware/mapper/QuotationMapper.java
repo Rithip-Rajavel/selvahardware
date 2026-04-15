@@ -8,6 +8,8 @@ import com.hardware.selvahardware.entity.Quotation;
 import com.hardware.selvahardware.entity.QuotationItem;
 import com.hardware.selvahardware.entity.Customer;
 import com.hardware.selvahardware.entity.Product;
+import com.hardware.selvahardware.repository.CustomerRepository;
+import com.hardware.selvahardware.repository.ProductRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,6 +17,12 @@ import java.util.stream.Collectors;
 
 @Component
 public class QuotationMapper {
+
+    private final ProductRepository productRepository;
+
+    public QuotationMapper(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     public QuotationDto toDto(Quotation quotation) {
         if (quotation == null) {
@@ -33,6 +41,8 @@ public class QuotationMapper {
                 .customerPhone(quotation.getCustomerPhone())
                 .customerType(quotation.getCustomerType())
                 .endCustomerName(quotation.getEndCustomerName())
+                .contractorId(quotation.getContractor() != null ? quotation.getContractor().getId() : null)
+                .contractorName(quotation.getContractorName())
                 .commission(quotation.getCommission())
                 .subtotal(quotation.getSubtotal())
                 .totalDiscount(quotation.getTotalDiscount())
@@ -45,7 +55,8 @@ public class QuotationMapper {
                 .createdAt(quotation.getCreatedAt())
                 .updatedAt(quotation.getUpdatedAt())
                 .convertedAt(quotation.getConvertedAt())
-                .convertedToInvoiceId(quotation.getConvertedToInvoice() != null ? quotation.getConvertedToInvoice().getId() : null)
+                .convertedToInvoiceId(
+                        quotation.getConvertedToInvoice() != null ? quotation.getConvertedToInvoice().getId() : null)
                 .items(itemDtos)
                 .build();
     }
@@ -80,8 +91,8 @@ public class QuotationMapper {
 
         List<QuotationItem> items = request.getItems() != null
                 ? request.getItems().stream()
-                    .map(itemRequest -> toItemEntity(itemRequest, null))
-                    .collect(Collectors.toList())
+                        .map(itemRequest -> toItemEntity(itemRequest, null))
+                        .collect(Collectors.toList())
                 : null;
 
         return Quotation.builder()
@@ -108,8 +119,15 @@ public class QuotationMapper {
             return null;
         }
 
+        // Fetch product entity to ensure product_id is not null
+        Product product = null;
+        if (request.getProductId() != null) {
+            product = productRepository.findById(request.getProductId()).orElse(null);
+        }
+
         return QuotationItem.builder()
                 .quotation(quotation)
+                .product(product)
                 .productName(request.getProductName())
                 .productCode(request.getProductCode())
                 .unitPrice(request.getUnitPrice())
@@ -146,7 +164,8 @@ public class QuotationMapper {
         }
         return items.stream()
                 .map(item -> {
-                    java.math.BigDecimal itemTotal = item.getUnitPrice().multiply(java.math.BigDecimal.valueOf(item.getQuantity()));
+                    java.math.BigDecimal itemTotal = item.getUnitPrice()
+                            .multiply(java.math.BigDecimal.valueOf(item.getQuantity()));
                     java.math.BigDecimal discountedTotal = itemTotal.subtract(item.getDiscount());
                     return discountedTotal.multiply(item.getGstPercentage()).divide(java.math.BigDecimal.valueOf(100));
                 })
@@ -161,9 +180,11 @@ public class QuotationMapper {
     }
 
     private java.math.BigDecimal calculateItemTotal(QuotationItemRequest request) {
-        java.math.BigDecimal itemTotal = request.getUnitPrice().multiply(java.math.BigDecimal.valueOf(request.getQuantity()));
+        java.math.BigDecimal itemTotal = request.getUnitPrice()
+                .multiply(java.math.BigDecimal.valueOf(request.getQuantity()));
         java.math.BigDecimal discountedTotal = itemTotal.subtract(request.getDiscount());
-        java.math.BigDecimal gstAmount = discountedTotal.multiply(request.getGstPercentage()).divide(java.math.BigDecimal.valueOf(100));
+        java.math.BigDecimal gstAmount = discountedTotal.multiply(request.getGstPercentage())
+                .divide(java.math.BigDecimal.valueOf(100));
         return discountedTotal.add(gstAmount);
     }
 
@@ -181,5 +202,12 @@ public class QuotationMapper {
         quotation.setValidUntil(request.getValidUntil());
         quotation.setNotes(request.getNotes());
         quotation.setTermsConditions(request.getTermsConditions());
+    }
+
+    public Customer getContractorFromRequest(QuotationRequest request, CustomerRepository customerRepository) {
+        if (request.getContractorId() != null) {
+            return customerRepository.findById(request.getContractorId()).orElse(null);
+        }
+        return null;
     }
 }

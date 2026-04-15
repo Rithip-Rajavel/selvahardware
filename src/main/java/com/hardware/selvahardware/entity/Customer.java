@@ -38,6 +38,9 @@ public class Customer {
     @Column(nullable = false)
     private CustomerType type;
 
+    @Column(name = "contractor_id", length = 50)
+    private UUID contractorId;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

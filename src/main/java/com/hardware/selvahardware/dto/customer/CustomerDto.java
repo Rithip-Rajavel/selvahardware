@@ -16,6 +16,7 @@ public class CustomerDto {
     private String email;
     private String address;
     private CustomerType type;
+    private UUID contractorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

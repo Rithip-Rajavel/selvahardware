@@ -46,6 +46,15 @@ public class Invoice {
     @Column(name = "end_customer_name")
     private String endCustomerName;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contractor_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Customer contractor;
+
+    @Column(name = "contractor_name")
+    private String contractorName;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal commission;
 

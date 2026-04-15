@@ -1,6 +1,7 @@
 package com.hardware.selvahardware.service;
 
 import com.hardware.selvahardware.dto.quotation.QuotationDto;
+import com.hardware.selvahardware.dto.quotation.QuotationItemRequest;
 import com.hardware.selvahardware.dto.quotation.QuotationRequest;
 import com.hardware.selvahardware.entity.Quotation;
 import com.hardware.selvahardware.entity.QuotationItem;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -63,18 +65,56 @@ public class QuotationService {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
 
+        // Fetch contractor if contractorId is provided
+        Customer contractor = null;
+        if (request.getContractorId() != null) {
+            contractor = customerRepository.findById(request.getContractorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Contractor", request.getContractorId()));
+        }
+
         // Generate quotation number
         String quotationNumber = generateQuotationNumber();
 
-        // Create quotation
-        Quotation quotation = quotationMapper.toEntity(request, customer, quotationNumber);
-
-        // Set default validity if not provided (30 days from now)
-        if (quotation.getValidUntil() == null) {
-            quotation.setValidUntil(LocalDateTime.now().plusDays(30));
+        // Create items first
+        List<QuotationItem> items = new ArrayList<>();
+        for (QuotationItemRequest itemRequest : request.getItems()) {
+            items.add(quotationMapper.toItemEntity(itemRequest, null)); // quotation will be set later
         }
 
-        // Save quotation
+        // Calculate totals from items
+        java.math.BigDecimal subtotal = calculateSubtotal(items);
+        java.math.BigDecimal totalDiscount = calculateTotalDiscount(items);
+        java.math.BigDecimal totalGst = calculateTotalGst(items);
+        java.math.BigDecimal grandTotal = subtotal.subtract(totalDiscount).add(totalGst);
+
+        // Create quotation with totals and items
+        Quotation quotation = Quotation.builder()
+                .quotationNumber(quotationNumber)
+                .customer(customer)
+                .customerName(request.getCustomerName())
+                .customerPhone(request.getCustomerPhone())
+                .customerType(request.getCustomerType())
+                .endCustomerName(request.getEndCustomerName())
+                .contractor(contractor)
+                .contractorName(request.getContractorName())
+                .commission(request.getCommission())
+                .subtotal(subtotal)
+                .totalDiscount(totalDiscount)
+                .totalGst(totalGst)
+                .grandTotal(grandTotal)
+                .validUntil(
+                        request.getValidUntil() != null ? request.getValidUntil() : LocalDateTime.now().plusDays(30))
+                .notes(request.getNotes())
+                .termsConditions(request.getTermsConditions())
+                .items(items)
+                .build();
+
+        // Set back-reference for each item
+        for (QuotationItem item : items) {
+            item.setQuotation(quotation);
+        }
+
+        // Save quotation with all data
         Quotation savedQuotation = quotationRepository.save(quotation);
         return quotationMapper.toDto(savedQuotation);
     }
@@ -190,6 +230,38 @@ public class QuotationService {
         return String.format("%s-%05d", prefix, sequence);
     }
 
+    private java.math.BigDecimal calculateSubtotal(List<QuotationItem> items) {
+        if (items == null || items.isEmpty()) {
+            return java.math.BigDecimal.ZERO;
+        }
+        return items.stream()
+                .map(item -> item.getUnitPrice().multiply(java.math.BigDecimal.valueOf(item.getQuantity())))
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    private java.math.BigDecimal calculateTotalDiscount(List<QuotationItem> items) {
+        if (items == null || items.isEmpty()) {
+            return java.math.BigDecimal.ZERO;
+        }
+        return items.stream()
+                .map(QuotationItem::getDiscount)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    private java.math.BigDecimal calculateTotalGst(List<QuotationItem> items) {
+        if (items == null || items.isEmpty()) {
+            return java.math.BigDecimal.ZERO;
+        }
+        return items.stream()
+                .map(item -> {
+                    java.math.BigDecimal itemTotal = item.getUnitPrice()
+                            .multiply(java.math.BigDecimal.valueOf(item.getQuantity()));
+                    java.math.BigDecimal discountedTotal = itemTotal.subtract(item.getDiscount());
+                    return discountedTotal.multiply(item.getGstPercentage()).divide(java.math.BigDecimal.valueOf(100));
+                })
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
     private void recalculateQuotationTotals(Quotation quotation) {
         // Recalculate subtotal
         java.math.BigDecimal subtotal = quotation.getItems().stream()
@@ -220,7 +292,8 @@ public class QuotationService {
         quotation.setGrandTotal(grandTotal);
     }
 
-    public com.hardware.selvahardware.dto.invoice.InvoiceDto convertToInvoice(UUID id) {
+    public com.hardware.selvahardware.dto.invoice.InvoiceDto convertToInvoice(UUID id,
+            java.math.BigDecimal amountPaid) {
         Quotation quotation = quotationRepository.findByIdWithItems(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quotation", id));
 
@@ -235,8 +308,19 @@ public class QuotationService {
             throw new BusinessException("Quotation is already converted to invoice");
         }
 
+        // Validate amountPaid
+        if (amountPaid == null) {
+            amountPaid = java.math.BigDecimal.ZERO;
+        }
+        if (amountPaid.compareTo(quotation.getGrandTotal()) > 0) {
+            throw new BusinessException("Amount paid cannot be greater than grand total");
+        }
+
         // Generate invoice number
         String invoiceNumber = generateInvoiceNumber();
+
+        // Calculate balance
+        java.math.BigDecimal balance = quotation.getGrandTotal().subtract(amountPaid);
 
         // Create invoice from quotation
         Invoice invoice = Invoice.builder()
@@ -246,13 +330,15 @@ public class QuotationService {
                 .customerPhone(quotation.getCustomerPhone())
                 .customerType(quotation.getCustomerType())
                 .endCustomerName(quotation.getEndCustomerName())
+                .contractor(quotation.getContractor())
+                .contractorName(quotation.getContractorName())
                 .commission(quotation.getCommission())
                 .subtotal(quotation.getSubtotal())
                 .totalDiscount(quotation.getTotalDiscount())
                 .totalGst(quotation.getTotalGst())
                 .grandTotal(quotation.getGrandTotal())
-                .amountPaid(java.math.BigDecimal.ZERO)
-                .balance(quotation.getGrandTotal())
+                .amountPaid(amountPaid)
+                .balance(balance)
                 .paymentMethod(com.hardware.selvahardware.enums.PaymentMethod.cash) // Default payment method
                 .status(InvoiceStatus.pending)
                 .billType(BillType.final_bill)
@@ -330,6 +416,22 @@ public class QuotationService {
                 .notes("Converted from quotation: " + quotation.getQuotationNumber())
                 .build();
         paymentRepository.save(billingTx);
+
+        // Record payment transaction if amount paid > 0
+        if (amountPaid.compareTo(java.math.BigDecimal.ZERO) > 0) {
+            Payment paymentTx = Payment.builder()
+                    .customer(quotation.getCustomer())
+                    .customerName(quotation.getCustomerName())
+                    .invoiceId(savedInvoice.getId())
+                    .invoiceNumber(invoiceNumber)
+                    .type(TransactionType.payment)
+                    .amount(amountPaid)
+                    .balanceAfter(customerBalance.add(quotation.getGrandTotal()).subtract(amountPaid))
+                    .paymentMethod(com.hardware.selvahardware.enums.PaymentMethod.cash)
+                    .notes("Payment received during conversion from quotation: " + quotation.getQuotationNumber())
+                    .build();
+            paymentRepository.save(paymentTx);
+        }
 
         return invoiceMapper.toDto(savedInvoice);
     }

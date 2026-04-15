@@ -13,4 +13,8 @@ public class StockUpdateRequest {
 
     @NotBlank
     private String operation; // "add" or "subtract"
+
+    private java.math.BigDecimal cashAmount; // Cash amount when stock is decreased
+
+    private String notes;
 }

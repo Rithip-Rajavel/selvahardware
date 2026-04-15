@@ -109,8 +109,9 @@ public class QuotationController {
     @PostMapping("/{id}/convert-to-invoice")
     @Operation(summary = "Convert quotation to invoice")
     public ResponseEntity<ApiResponse<com.hardware.selvahardware.dto.invoice.InvoiceDto>> convertToInvoice(
-            @PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success(quotationService.convertToInvoice(id),
+            @PathVariable UUID id,
+            @RequestParam(required = false) java.math.BigDecimal amountPaid) {
+        return ResponseEntity.ok(ApiResponse.success(quotationService.convertToInvoice(id, amountPaid),
                 "Quotation converted to invoice successfully"));
     }
 }
