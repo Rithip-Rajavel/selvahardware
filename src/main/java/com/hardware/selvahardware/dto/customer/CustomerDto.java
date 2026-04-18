@@ -15,7 +15,11 @@ public class CustomerDto {
     private String phone;
     private String email;
     private String address;
+    private String city;
     private CustomerType type;
+    private Boolean isActive;
+    private LocalDateTime lastPaymentDate;
+    private LocalDateTime lastInvoiceDate;
     private UUID contractorId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

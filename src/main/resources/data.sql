@@ -5,9 +5,76 @@
 
 -- Update user role check constraint to include new roles
 ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
-ALTER TABLE users 
-ADD CONSTRAINT users_role_check 
+ALTER TABLE users
+ADD CONSTRAINT users_role_check
 CHECK (role IN ('admin', 'staff', 'owner', 'manager', 'accountant', 'employee', 'superadmin'));
+
+-- Add new columns to customers table for city, isActive, lastPaymentDate, lastInvoiceDate
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS city VARCHAR(100);
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_payment_date TIMESTAMP;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_invoice_date TIMESTAMP;
+
+-- Create invoice_audit_logs table for complete audit trail
+CREATE TABLE IF NOT EXISTS invoice_audit_logs (
+    id VARCHAR(50) PRIMARY KEY,
+    invoice_id VARCHAR(50) NOT NULL,
+    invoice_number VARCHAR(50) NOT NULL,
+    customer_id VARCHAR(50),
+    customer_name VARCHAR(255),
+    action_type VARCHAR(50) NOT NULL,
+    action_description TEXT,
+    amount DECIMAL(10, 2),
+    balance_before DECIMAL(10, 2),
+    balance_after DECIMAL(10, 2),
+    amount_paid_before DECIMAL(10, 2),
+    amount_paid_after DECIMAL(10, 2),
+    payment_method VARCHAR(50),
+    transaction_id VARCHAR(50),
+    return_id VARCHAR(50),
+    notes TEXT,
+    created_by VARCHAR(100),
+    created_at TIMESTAMP NOT NULL
+);
+
+-- Create invoice_returns table for return/written bill functionality
+CREATE TABLE IF NOT EXISTS invoice_returns (
+    id VARCHAR(50) PRIMARY KEY,
+    return_number VARCHAR(50) UNIQUE NOT NULL,
+    invoice_id VARCHAR(50) NOT NULL,
+    invoice_number VARCHAR(50) NOT NULL,
+    customer_id VARCHAR(50) NOT NULL,
+    customer_name VARCHAR(255) NOT NULL,
+    total_return_amount DECIMAL(10, 2) NOT NULL,
+    total_return_quantity DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    refund_amount DECIMAL(10, 2),
+    refund_method VARCHAR(50),
+    reason TEXT,
+    processed_by VARCHAR(100),
+    processed_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);
+
+-- Create invoice_return_items table
+CREATE TABLE IF NOT EXISTS invoice_return_items (
+    id VARCHAR(50) PRIMARY KEY,
+    return_id VARCHAR(50) NOT NULL,
+    invoice_item_id VARCHAR(50),
+    product_id VARCHAR(50) NOT NULL,
+    product_name VARCHAR(255) NOT NULL,
+    product_code VARCHAR(50),
+    quantity DECIMAL(10, 2) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    gst_percentage DECIMAL(5, 2),
+    gst_amount DECIMAL(10, 2),
+    discount DECIMAL(10, 2) DEFAULT 0,
+    subtotal DECIMAL(10, 2) NOT NULL,
+    total DECIMAL(10, 2) NOT NULL,
+    reason TEXT,
+    original_invoice_quantity DECIMAL(10, 2)
+);
 
 -- products table
 -- products table

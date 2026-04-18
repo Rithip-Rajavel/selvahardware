@@ -34,9 +34,22 @@ public class Customer {
     @Column(columnDefinition = "TEXT")
     private String address;
 
+    @Column(length = 100)
+    private String city;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CustomerType type;
+
+    @Column(name = "is_active")
+    @Builder.Default
+    private Boolean isActive = true;
+
+    @Column(name = "last_payment_date")
+    private LocalDateTime lastPaymentDate;
+
+    @Column(name = "last_invoice_date")
+    private LocalDateTime lastInvoiceDate;
 
     @Column(name = "contractor_id", length = 50)
     private UUID contractorId;

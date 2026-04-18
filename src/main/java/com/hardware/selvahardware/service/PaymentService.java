@@ -32,32 +32,32 @@ public class PaymentService {
 
         // Get all payments and apply filters dynamically
         List<Payment> payments = paymentRepository.findAll();
-        
+
         // Apply filters in Java to avoid PostgreSQL parameter type issues
         if (customerId != null) {
             payments = payments.stream()
                     .filter(payment -> payment.getCustomer().getId().equals(customerId))
                     .collect(Collectors.toList());
         }
-        
+
         if (txType != null) {
             payments = payments.stream()
                     .filter(payment -> payment.getType().equals(txType))
                     .collect(Collectors.toList());
         }
-        
+
         if (from != null) {
             payments = payments.stream()
                     .filter(payment -> payment.getCreatedAt().isAfter(from) || payment.getCreatedAt().isEqual(from))
                     .collect(Collectors.toList());
         }
-        
+
         if (to != null) {
             payments = payments.stream()
                     .filter(payment -> payment.getCreatedAt().isBefore(to) || payment.getCreatedAt().isEqual(to))
                     .collect(Collectors.toList());
         }
-        
+
         return payments.stream().map(paymentMapper::toDto).collect(Collectors.toList());
     }
 
@@ -75,7 +75,13 @@ public class PaymentService {
                 .paymentMethod(request.getPaymentMethod())
                 .notes(request.getNotes())
                 .build();
-        return paymentMapper.toDto(paymentRepository.save(payment));
+        Payment saved = paymentRepository.save(payment);
+
+        // Update last payment date for customer
+        customer.setLastPaymentDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        return paymentMapper.toDto(saved);
     }
 
     public List<PaymentDto> getCustomerPayments(UUID customerId) {

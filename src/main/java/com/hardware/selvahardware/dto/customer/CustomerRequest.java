@@ -15,9 +15,12 @@ public class CustomerRequest {
     private String phone;
     private String email;
     private String address;
+    private String city;
 
     @NotNull
     private CustomerType type;
+
+    private Boolean isActive;
 
     private UUID contractorId;
 }

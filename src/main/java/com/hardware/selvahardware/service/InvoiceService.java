@@ -30,6 +30,7 @@ public class InvoiceService {
     private final ProductRepository productRepository;
     private final PaymentRepository paymentRepository;
     private final PriceMappingRepository priceMappingRepository;
+    private final InvoiceAuditService invoiceAuditService;
 
     public List<InvoiceDto> getInvoices(UUID customerId, InvoiceStatus status, BillType billType,
             String fromDate, String toDate, String search) {
@@ -135,6 +136,19 @@ public class InvoiceService {
         invoice.setItems(items);
         Invoice saved = invoiceRepository.save(invoice);
 
+        // Update last invoice date for customer
+        customer.setLastInvoiceDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        // Update last invoice date for contractor if applicable
+        if (contractor != null) {
+            contractor.setLastInvoiceDate(LocalDateTime.now());
+            customerRepository.save(contractor);
+        }
+
+        // Log invoice creation in audit trail
+        invoiceAuditService.logInvoiceCreated(saved.getId());
+
         // Update stock and price mapping for final bills
         if (BillType.final_bill.equals(request.getBillType())) {
             request.getItems().forEach(itemReq -> {
@@ -217,6 +231,28 @@ public class InvoiceService {
                 .notes(request.getNotes())
                 .build();
         paymentRepository.save(paymentTx);
+
+        // Update last payment date for customer
+        Customer customer = invoice.getCustomer();
+        customer.setLastPaymentDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        // Update last payment date for contractor if applicable
+        if (invoice.getContractor() != null) {
+            Customer contractor = invoice.getContractor();
+            contractor.setLastPaymentDate(LocalDateTime.now());
+            customerRepository.save(contractor);
+        }
+
+        // Log payment in audit trail
+        invoiceAuditService.logPaymentReceived(
+                invoice.getId(),
+                paymentTx.getId(),
+                request.getAmount(),
+                invoice.getBalance().add(request.getAmount()), // balance before
+                saved.getBalance(), // balance after
+                request.getPaymentMethod() != null ? request.getPaymentMethod().toString() : null,
+                request.getNotes());
 
         return invoiceMapper.toDto(saved);
     }
