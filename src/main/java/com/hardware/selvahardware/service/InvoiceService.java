@@ -306,11 +306,9 @@ public class InvoiceService {
         invoice.setNotes(request.getNotes());
         invoice.setNextPayDate(request.getNextPayDate() != null ? request.getNextPayDate().atStartOfDay() : null);
 
-        // Update items
-        List<InvoiceItem> existingItems = invoice.getItems();
-        if (existingItems != null) {
-            existingItems.clear();
-        }
+        // Update items - clear existing and add new
+        List<InvoiceItem> items = invoice.getItems();
+        items.clear();
 
         List<InvoiceItem> newItems = request.getItems().stream().map(itemReq -> {
             InvoiceItem item = invoiceMapper.toItemEntity(itemReq, null);
@@ -318,7 +316,7 @@ public class InvoiceService {
             return item;
         }).collect(Collectors.toList());
 
-        invoice.setItems(newItems);
+        items.addAll(newItems);
         Invoice saved = invoiceRepository.save(invoice);
 
         return invoiceMapper.toDto(saved);
