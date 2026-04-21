@@ -56,6 +56,9 @@ public class Payment {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "next_pay_date")
+    private LocalDateTime nextPayDate;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

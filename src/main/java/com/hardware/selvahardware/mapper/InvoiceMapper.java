@@ -41,6 +41,7 @@ public class InvoiceMapper {
                 .status(invoice.getStatus())
                 .billType(invoice.getBillType())
                 .notes(invoice.getNotes())
+                .nextPayDate(invoice.getNextPayDate())
                 .items(itemDtos)
                 .createdAt(invoice.getCreatedAt())
                 .updatedAt(invoice.getUpdatedAt())

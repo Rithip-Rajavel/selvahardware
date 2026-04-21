@@ -74,6 +74,7 @@ public class PaymentService {
                 .balanceAfter(request.getBalanceAfter())
                 .paymentMethod(request.getPaymentMethod())
                 .notes(request.getNotes())
+                .nextPayDate(request.getNextPayDate() != null ? request.getNextPayDate().atStartOfDay() : null)
                 .build();
         Payment saved = paymentRepository.save(payment);
 

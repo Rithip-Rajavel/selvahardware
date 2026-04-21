@@ -15,6 +15,12 @@ ALTER TABLE customers ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_payment_date TIMESTAMP;
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_invoice_date TIMESTAMP;
 
+-- Add nextPayDate column to payments table
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS next_pay_date TIMESTAMP;
+
+-- Add nextPayDate column to invoices table
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS next_pay_date TIMESTAMP;
+
 -- Create invoice_audit_logs table for complete audit trail
 CREATE TABLE IF NOT EXISTS invoice_audit_logs (
     id VARCHAR(50) PRIMARY KEY,

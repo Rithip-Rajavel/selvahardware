@@ -32,6 +32,7 @@ public class InvoiceDto {
     private InvoiceStatus status;
     private BillType billType;
     private String notes;
+    private LocalDateTime nextPayDate;
     private List<InvoiceItemDto> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

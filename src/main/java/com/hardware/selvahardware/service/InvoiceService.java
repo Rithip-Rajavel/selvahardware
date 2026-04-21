@@ -10,6 +10,7 @@ import com.hardware.selvahardware.exception.ResourceNotFoundException;
 import com.hardware.selvahardware.mapper.InvoiceMapper;
 import com.hardware.selvahardware.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -125,6 +126,7 @@ public class InvoiceService {
                 .status(request.getStatus())
                 .billType(request.getBillType())
                 .notes(request.getNotes())
+                .nextPayDate(request.getNextPayDate() != null ? request.getNextPayDate().atStartOfDay() : null)
                 .build();
 
         List<InvoiceItem> items = request.getItems().stream().map(itemReq -> {
@@ -194,9 +196,15 @@ public class InvoiceService {
         return invoiceMapper.toDto(saved);
     }
 
+    @Transactional(readOnly = true)
     public InvoiceDto getInvoiceById(UUID id) {
-        return invoiceMapper.toDto(invoiceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id)));
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id));
+
+        // Initialize lazy-loaded collections
+        Hibernate.initialize(invoice.getItems());
+
+        return invoiceMapper.toDto(invoice);
     }
 
     @Transactional
@@ -258,10 +266,75 @@ public class InvoiceService {
     }
 
     public void deleteInvoice(UUID id) {
-        if (!invoiceRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Invoice", id);
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id));
+        invoiceRepository.delete(invoice);
+    }
+
+    @Transactional
+    public InvoiceDto updateInvoice(UUID id, InvoiceRequest request) {
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id));
+
+        // Initialize lazy-loaded collections
+        Hibernate.initialize(invoice.getItems());
+
+        // Fetch contractor if contractorId is provided
+        Customer contractor = null;
+        if (request.getContractorId() != null) {
+            contractor = customerRepository.findById(request.getContractorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Contractor", request.getContractorId()));
         }
-        invoiceRepository.deleteById(id);
+
+        // Update basic fields
+        invoice.setCustomerName(request.getCustomerName());
+        invoice.setCustomerPhone(request.getCustomerPhone());
+        invoice.setCustomerType(request.getCustomerType());
+        invoice.setEndCustomerName(request.getEndCustomerName());
+        invoice.setContractor(contractor);
+        invoice.setContractorName(request.getContractorName());
+        invoice.setCommission(request.getCommission());
+        invoice.setSubtotal(request.getSubtotal());
+        invoice.setTotalDiscount(request.getTotalDiscount());
+        invoice.setTotalGst(request.getTotalGst());
+        invoice.setGrandTotal(request.getGrandTotal());
+        invoice.setAmountPaid(request.getAmountPaid());
+        invoice.setBalance(request.getBalance());
+        invoice.setPaymentMethod(request.getPaymentMethod());
+        invoice.setStatus(request.getStatus());
+        invoice.setBillType(request.getBillType());
+        invoice.setNotes(request.getNotes());
+        invoice.setNextPayDate(request.getNextPayDate() != null ? request.getNextPayDate().atStartOfDay() : null);
+
+        // Update items
+        List<InvoiceItem> existingItems = invoice.getItems();
+        if (existingItems != null) {
+            existingItems.clear();
+        }
+
+        List<InvoiceItem> newItems = request.getItems().stream().map(itemReq -> {
+            InvoiceItem item = invoiceMapper.toItemEntity(itemReq, null);
+            item.setInvoice(invoice);
+            return item;
+        }).collect(Collectors.toList());
+
+        invoice.setItems(newItems);
+        Invoice saved = invoiceRepository.save(invoice);
+
+        return invoiceMapper.toDto(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InvoiceDto> getPendingInvoicesDueByDate(String date) {
+        LocalDateTime dueDate = LocalDateTime.parse(date + "T23:59:59");
+        return invoiceRepository.findAll().stream()
+                .filter(invoice -> invoice.getStatus() != InvoiceStatus.paid)
+                .filter(invoice -> invoice.getStatus() != InvoiceStatus.cancelled)
+                .filter(invoice -> invoice.getNextPayDate() != null)
+                .filter(invoice -> invoice.getNextPayDate().isBefore(dueDate)
+                        || invoice.getNextPayDate().isEqual(dueDate))
+                .map(invoiceMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     public String getNextInvoiceNumber(String prefix) {

@@ -1,5 +1,6 @@
 package com.hardware.selvahardware.dto.payment;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hardware.selvahardware.enums.PaymentMethod;
 import com.hardware.selvahardware.enums.TransactionType;
 import jakarta.validation.constraints.DecimalMin;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -35,4 +37,7 @@ public class PaymentRequest {
     private PaymentMethod paymentMethod;
 
     private String notes;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate nextPayDate;
 }

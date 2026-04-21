@@ -1,5 +1,6 @@
 package com.hardware.selvahardware.dto.invoice;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.hardware.selvahardware.enums.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,4 +57,7 @@ public class InvoiceRequest {
     private InvoiceStatus status = InvoiceStatus.pending;
     private BillType billType = BillType.final_bill;
     private String notes;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate nextPayDate;
 }
