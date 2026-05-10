@@ -71,7 +71,7 @@ public class PendingBillService {
         log.info("Updating pending bill with id: {}", id);
         PendingBill bill = pendingBillRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PendingBill", id));
-        
+
         bill.setCustomerId(request.getCustomerId());
         bill.setCustomerName(request.getCustomerName());
         bill.setCustomerType(request.getCustomerType());
@@ -81,7 +81,7 @@ public class PendingBillService {
         bill.setEndCustomerName(request.getEndCustomerName());
         bill.setCommission(request.getCommission());
         bill.setNotes(request.getNotes());
-        
+
         if (request.getItems() != null) {
             if (bill.getItems() != null) {
                 bill.getItems().clear();
@@ -90,7 +90,7 @@ public class PendingBillService {
             }
             bill.getItems().addAll(mapItems(request.getItems(), bill));
         }
-        
+
         PendingBill savedBill = pendingBillRepository.save(bill);
         log.info("Pending bill updated successfully with id: {}", savedBill.getId());
         return pendingBillMapper.toDto(savedBill);
@@ -128,7 +128,17 @@ public class PendingBillService {
                 .height(req.getHeight())
                 .width(req.getWidth())
                 .area(req.getArea())
-                .build()
-        ).collect(Collectors.toList());
+                .build()).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public PendingBillDto updateGstStatus(UUID billId, Boolean isGst) {
+        PendingBill bill = pendingBillRepository.findById(billId)
+                .orElseThrow(() -> new ResourceNotFoundException("Pending bill not found with id: " + billId));
+
+        bill.setIsGst(isGst);
+        PendingBill savedBill = pendingBillRepository.save(bill);
+        log.info("Pending bill GST status updated successfully with id: {}", savedBill.getId());
+        return pendingBillMapper.toDto(savedBill);
     }
 }

@@ -93,4 +93,12 @@ public class InvoiceController {
             @Valid @RequestBody PayInvoiceRequest request) {
         return ResponseEntity.ok(ApiResponse.success(invoiceService.payInvoice(id, request)));
     }
+
+    @PutMapping("/{id}/gst")
+    @Operation(summary = "Update invoice GST status")
+    public ResponseEntity<ApiResponse<InvoiceDto>> updateInvoiceGstStatus(@PathVariable UUID id,
+            @RequestBody Boolean isGst) {
+        return ResponseEntity
+                .ok(ApiResponse.success(invoiceService.updateGstStatus(id, isGst), "Invoice GST status updated"));
+    }
 }

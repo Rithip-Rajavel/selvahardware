@@ -386,4 +386,13 @@ public class InvoiceService {
         List<Invoice> invoices = invoiceRepository.findByCustomerIdOrderByCreatedAtAsc(customerId);
         return invoices.stream().map(Invoice::getBalance).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    public InvoiceDto updateGstStatus(UUID invoiceId, Boolean isGst) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+
+        invoice.setIsGst(isGst);
+        Invoice updatedInvoice = invoiceRepository.save(invoice);
+        return invoiceMapper.toDto(updatedInvoice);
+    }
 }

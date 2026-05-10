@@ -47,7 +47,7 @@ public class PendingBillController {
     @PutMapping("/{id}")
     @Operation(summary = "Update pending bill")
     public ResponseEntity<ApiResponse<PendingBillDto>> update(@PathVariable UUID id,
-                                                               @Valid @RequestBody PendingBillRequest request) {
+            @Valid @RequestBody PendingBillRequest request) {
         return ResponseEntity.ok(ApiResponse.success(pendingBillService.update(id, request)));
     }
 
@@ -56,5 +56,13 @@ public class PendingBillController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable UUID id) {
         pendingBillService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Pending bill deleted"));
+    }
+
+    @PutMapping("/{id}/gst")
+    @Operation(summary = "Update pending bill GST status")
+    public ResponseEntity<ApiResponse<PendingBillDto>> updateGstStatus(@PathVariable UUID id,
+            @RequestBody Boolean isGst) {
+        return ResponseEntity.ok(
+                ApiResponse.success(pendingBillService.updateGstStatus(id, isGst), "Pending bill GST status updated"));
     }
 }
