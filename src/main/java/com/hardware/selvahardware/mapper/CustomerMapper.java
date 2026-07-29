@@ -18,7 +18,12 @@ public class CustomerMapper {
                 .phone(customer.getPhone())
                 .email(customer.getEmail())
                 .address(customer.getAddress())
+                .city(customer.getCity())
                 .type(customer.getType())
+                .isActive(customer.getIsActive())
+                .lastPaymentDate(customer.getLastPaymentDate())
+                .lastInvoiceDate(customer.getLastInvoiceDate())
+                .contractorId(customer.getContractorId())
                 .createdAt(customer.getCreatedAt())
                 .updatedAt(customer.getUpdatedAt())
                 .build();
@@ -30,7 +35,10 @@ public class CustomerMapper {
                 .phone(req.getPhone())
                 .email(req.getEmail())
                 .address(req.getAddress())
+                .city(req.getCity())
                 .type(req.getType())
+                .isActive(req.getIsActive() != null ? req.getIsActive() : true)
+                .contractorId(req.getContractorId())
                 .build();
     }
 
@@ -39,6 +47,11 @@ public class CustomerMapper {
         customer.setPhone(req.getPhone());
         customer.setEmail(req.getEmail());
         customer.setAddress(req.getAddress());
+        customer.setCity(req.getCity());
         customer.setType(req.getType());
+        if (req.getIsActive() != null) {
+            customer.setIsActive(req.getIsActive());
+        }
+        customer.setContractorId(req.getContractorId());
     }
 }

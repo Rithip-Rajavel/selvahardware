@@ -19,6 +19,7 @@ public class PaymentMapper {
                 .balanceAfter(payment.getBalanceAfter())
                 .paymentMethod(payment.getPaymentMethod())
                 .notes(payment.getNotes())
+                .nextPayDate(payment.getNextPayDate())
                 .createdAt(payment.getCreatedAt())
                 .build();
     }

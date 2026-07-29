@@ -22,5 +22,6 @@ public class PaymentDto {
     private BigDecimal balanceAfter;
     private PaymentMethod paymentMethod;
     private String notes;
+    private LocalDateTime nextPayDate;
     private LocalDateTime createdAt;
 }

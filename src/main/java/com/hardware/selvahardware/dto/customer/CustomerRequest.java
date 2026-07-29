@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class CustomerRequest {
     @NotBlank
@@ -13,7 +15,12 @@ public class CustomerRequest {
     private String phone;
     private String email;
     private String address;
+    private String city;
 
     @NotNull
     private CustomerType type;
+
+    private Boolean isActive;
+
+    private UUID contractorId;
 }

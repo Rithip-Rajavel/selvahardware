@@ -65,6 +65,10 @@ public class PendingBill {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "is_gst")
+    @Builder.Default
+    private Boolean isGst = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

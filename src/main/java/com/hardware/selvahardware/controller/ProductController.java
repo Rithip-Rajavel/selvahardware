@@ -4,6 +4,7 @@ import com.hardware.selvahardware.dto.ApiResponse;
 import com.hardware.selvahardware.dto.product.ProductDto;
 import com.hardware.selvahardware.dto.product.ProductRequest;
 import com.hardware.selvahardware.dto.product.StockUpdateRequest;
+import com.hardware.selvahardware.dto.product.PriceUpdateRequest;
 import com.hardware.selvahardware.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -44,7 +45,8 @@ public class ProductController {
     @PostMapping
     @Operation(summary = "Add new product")
     public ResponseEntity<ApiResponse<ProductDto>> createProduct(@Valid @RequestBody ProductRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(productService.createProduct(request), "Product created"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(productService.createProduct(request), "Product created"));
     }
 
     @GetMapping("/{id}")
@@ -56,7 +58,7 @@ public class ProductController {
     @PutMapping("/{id}")
     @Operation(summary = "Update product details")
     public ResponseEntity<ApiResponse<ProductDto>> updateProduct(@PathVariable UUID id,
-                                                                  @Valid @RequestBody ProductRequest request) {
+            @Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(ApiResponse.success(productService.updateProduct(id, request)));
     }
 
@@ -70,7 +72,17 @@ public class ProductController {
     @PutMapping("/{id}/stock")
     @Operation(summary = "Update product stock (add or subtract)")
     public ResponseEntity<ApiResponse<ProductDto>> updateStock(@PathVariable UUID id,
-                                                                @Valid @RequestBody StockUpdateRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(productService.updateStock(id, request)));
+            @Valid @RequestBody StockUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                productService.updateStock(id, request, request.getCashAmount(), "System", request.getNotes()),
+                "Stock updated successfully"));
+    }
+
+    @PutMapping("/{id}/price")
+    @Operation(summary = "Update product price")
+    public ResponseEntity<ApiResponse<ProductDto>> updatePrice(@PathVariable UUID id,
+            @Valid @RequestBody PriceUpdateRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(productService.updatePrice(id, request),
+                "Price updated successfully"));
     }
 }

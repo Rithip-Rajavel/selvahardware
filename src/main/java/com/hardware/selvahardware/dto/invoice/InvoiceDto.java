@@ -19,6 +19,8 @@ public class InvoiceDto {
     private String customerPhone;
     private CustomerType customerType;
     private String endCustomerName;
+    private UUID contractorId;
+    private String contractorName;
     private BigDecimal commission;
     private BigDecimal subtotal;
     private BigDecimal totalDiscount;
@@ -30,6 +32,7 @@ public class InvoiceDto {
     private InvoiceStatus status;
     private BillType billType;
     private String notes;
+    private LocalDateTime nextPayDate;
     private List<InvoiceItemDto> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

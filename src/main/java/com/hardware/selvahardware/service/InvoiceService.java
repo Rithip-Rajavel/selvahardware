@@ -10,6 +10,7 @@ import com.hardware.selvahardware.exception.ResourceNotFoundException;
 import com.hardware.selvahardware.mapper.InvoiceMapper;
 import com.hardware.selvahardware.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,63 +31,64 @@ public class InvoiceService {
     private final ProductRepository productRepository;
     private final PaymentRepository paymentRepository;
     private final PriceMappingRepository priceMappingRepository;
+    private final InvoiceAuditService invoiceAuditService;
 
     public List<InvoiceDto> getInvoices(UUID customerId, InvoiceStatus status, BillType billType,
-                                         String fromDate, String toDate, String search) {
-        
+            String fromDate, String toDate, String search) {
+
         // If no filters provided, return all invoices directly
-        if (customerId == null && status == null && billType == null && 
-            fromDate == null && toDate == null && (search == null || search.trim().isEmpty())) {
+        if (customerId == null && status == null && billType == null &&
+                fromDate == null && toDate == null && (search == null || search.trim().isEmpty())) {
             return invoiceRepository.findAllInvoicesWithItems().stream()
                     .map(invoiceMapper::toDto)
                     .collect(Collectors.toList());
         }
-        
+
         LocalDateTime from = fromDate != null ? LocalDateTime.parse(fromDate + "T00:00:00") : null;
         LocalDateTime to = toDate != null ? LocalDateTime.parse(toDate + "T23:59:59") : null;
 
         // Start with all invoices and apply filters dynamically
         List<Invoice> invoices = invoiceRepository.findAllInvoicesWithItems();
-        
+
         // Apply filters in Java to avoid PostgreSQL parameter type issues
         if (customerId != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getCustomer().getId().equals(customerId))
                     .collect(Collectors.toList());
         }
-        
+
         if (status != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getStatus().equals(status))
                     .collect(Collectors.toList());
         }
-        
+
         if (billType != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getBillType().equals(billType))
                     .collect(Collectors.toList());
         }
-        
+
         if (from != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getCreatedAt().isAfter(from) || invoice.getCreatedAt().isEqual(from))
                     .collect(Collectors.toList());
         }
-        
+
         if (to != null) {
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getCreatedAt().isBefore(to) || invoice.getCreatedAt().isEqual(to))
                     .collect(Collectors.toList());
         }
-        
+
         if (search != null && !search.trim().isEmpty()) {
             String searchLower = search.toLowerCase();
             invoices = invoices.stream()
                     .filter(invoice -> invoice.getInvoiceNumber().toLowerCase().contains(searchLower) ||
-                                    invoice.getCustomerName().toLowerCase().contains(searchLower))
+                            invoice.getCustomerName().toLowerCase().contains(searchLower))
                     .collect(Collectors.toList());
         }
-        
+
         return invoices.stream().map(invoiceMapper::toDto).collect(Collectors.toList());
     }
 
@@ -94,6 +96,13 @@ public class InvoiceService {
     public InvoiceDto createInvoice(InvoiceRequest request) {
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Customer", request.getCustomerId()));
+
+        // Fetch contractor if contractorId is provided
+        Customer contractor = null;
+        if (request.getContractorId() != null) {
+            contractor = customerRepository.findById(request.getContractorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Contractor", request.getContractorId()));
+        }
 
         String invoiceNumber = generateInvoiceNumber(getSettings());
 
@@ -104,6 +113,8 @@ public class InvoiceService {
                 .customerPhone(request.getCustomerPhone())
                 .customerType(request.getCustomerType())
                 .endCustomerName(request.getEndCustomerName())
+                .contractor(contractor)
+                .contractorName(request.getContractorName())
                 .commission(request.getCommission())
                 .subtotal(request.getSubtotal())
                 .totalDiscount(request.getTotalDiscount())
@@ -115,6 +126,7 @@ public class InvoiceService {
                 .status(request.getStatus())
                 .billType(request.getBillType())
                 .notes(request.getNotes())
+                .nextPayDate(request.getNextPayDate() != null ? request.getNextPayDate().atStartOfDay() : null)
                 .build();
 
         List<InvoiceItem> items = request.getItems().stream().map(itemReq -> {
@@ -125,6 +137,19 @@ public class InvoiceService {
 
         invoice.setItems(items);
         Invoice saved = invoiceRepository.save(invoice);
+
+        // Update last invoice date for customer
+        customer.setLastInvoiceDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        // Update last invoice date for contractor if applicable
+        if (contractor != null) {
+            contractor.setLastInvoiceDate(LocalDateTime.now());
+            customerRepository.save(contractor);
+        }
+
+        // Log invoice creation in audit trail
+        invoiceAuditService.logInvoiceCreated(saved.getId());
 
         // Update stock and price mapping for final bills
         if (BillType.final_bill.equals(request.getBillType())) {
@@ -171,9 +196,15 @@ public class InvoiceService {
         return invoiceMapper.toDto(saved);
     }
 
+    @Transactional(readOnly = true)
     public InvoiceDto getInvoiceById(UUID id) {
-        return invoiceMapper.toDto(invoiceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id)));
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id));
+
+        // Initialize lazy-loaded collections
+        Hibernate.initialize(invoice.getItems());
+
+        return invoiceMapper.toDto(invoice);
     }
 
     @Transactional
@@ -209,14 +240,99 @@ public class InvoiceService {
                 .build();
         paymentRepository.save(paymentTx);
 
+        // Update last payment date for customer
+        Customer customer = invoice.getCustomer();
+        customer.setLastPaymentDate(LocalDateTime.now());
+        customerRepository.save(customer);
+
+        // Update last payment date for contractor if applicable
+        if (invoice.getContractor() != null) {
+            Customer contractor = invoice.getContractor();
+            contractor.setLastPaymentDate(LocalDateTime.now());
+            customerRepository.save(contractor);
+        }
+
+        // Log payment in audit trail
+        invoiceAuditService.logPaymentReceived(
+                invoice.getId(),
+                paymentTx.getId(),
+                request.getAmount(),
+                invoice.getBalance().add(request.getAmount()), // balance before
+                saved.getBalance(), // balance after
+                request.getPaymentMethod() != null ? request.getPaymentMethod().toString() : null,
+                request.getNotes());
+
         return invoiceMapper.toDto(saved);
     }
 
     public void deleteInvoice(UUID id) {
-        if (!invoiceRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Invoice", id);
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id));
+        invoiceRepository.delete(invoice);
+    }
+
+    @Transactional
+    public InvoiceDto updateInvoice(UUID id, InvoiceRequest request) {
+        Invoice invoice = invoiceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice", id));
+
+        // Initialize lazy-loaded collections
+        Hibernate.initialize(invoice.getItems());
+
+        // Fetch contractor if contractorId is provided
+        Customer contractor = null;
+        if (request.getContractorId() != null) {
+            contractor = customerRepository.findById(request.getContractorId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Contractor", request.getContractorId()));
         }
-        invoiceRepository.deleteById(id);
+
+        // Update basic fields
+        invoice.setCustomerName(request.getCustomerName());
+        invoice.setCustomerPhone(request.getCustomerPhone());
+        invoice.setCustomerType(request.getCustomerType());
+        invoice.setEndCustomerName(request.getEndCustomerName());
+        invoice.setContractor(contractor);
+        invoice.setContractorName(request.getContractorName());
+        invoice.setCommission(request.getCommission());
+        invoice.setSubtotal(request.getSubtotal());
+        invoice.setTotalDiscount(request.getTotalDiscount());
+        invoice.setTotalGst(request.getTotalGst());
+        invoice.setGrandTotal(request.getGrandTotal());
+        invoice.setAmountPaid(request.getAmountPaid());
+        invoice.setBalance(request.getBalance());
+        invoice.setPaymentMethod(request.getPaymentMethod());
+        invoice.setStatus(request.getStatus());
+        invoice.setBillType(request.getBillType());
+        invoice.setNotes(request.getNotes());
+        invoice.setNextPayDate(request.getNextPayDate() != null ? request.getNextPayDate().atStartOfDay() : null);
+
+        // Update items - clear existing and add new
+        List<InvoiceItem> items = invoice.getItems();
+        items.clear();
+
+        List<InvoiceItem> newItems = request.getItems().stream().map(itemReq -> {
+            InvoiceItem item = invoiceMapper.toItemEntity(itemReq, null);
+            item.setInvoice(invoice);
+            return item;
+        }).collect(Collectors.toList());
+
+        items.addAll(newItems);
+        Invoice saved = invoiceRepository.save(invoice);
+
+        return invoiceMapper.toDto(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InvoiceDto> getPendingInvoicesDueByDate(String date) {
+        LocalDateTime dueDate = LocalDateTime.parse(date + "T23:59:59");
+        return invoiceRepository.findAll().stream()
+                .filter(invoice -> invoice.getStatus() != InvoiceStatus.paid)
+                .filter(invoice -> invoice.getStatus() != InvoiceStatus.cancelled)
+                .filter(invoice -> invoice.getNextPayDate() != null)
+                .filter(invoice -> invoice.getNextPayDate().isBefore(dueDate)
+                        || invoice.getNextPayDate().isEqual(dueDate))
+                .map(invoiceMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     public String getNextInvoiceNumber(String prefix) {
@@ -256,7 +372,8 @@ public class InvoiceService {
         if (lastNumber != null && lastNumber.length() > prefix.length() + 4) {
             try {
                 counter = Integer.parseInt(lastNumber.substring(prefix.length() + 4)) + 1;
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
         return prefix + yearMonth + String.format("%04d", counter);
     }
@@ -268,5 +385,14 @@ public class InvoiceService {
     private BigDecimal getCustomerBalance(UUID customerId) {
         List<Invoice> invoices = invoiceRepository.findByCustomerIdOrderByCreatedAtAsc(customerId);
         return invoices.stream().map(Invoice::getBalance).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public InvoiceDto updateGstStatus(UUID invoiceId, Boolean isGst) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with id: " + invoiceId));
+
+        invoice.setIsGst(isGst);
+        Invoice updatedInvoice = invoiceRepository.save(invoice);
+        return invoiceMapper.toDto(updatedInvoice);
     }
 }

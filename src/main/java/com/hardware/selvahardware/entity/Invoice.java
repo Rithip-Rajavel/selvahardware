@@ -46,6 +46,15 @@ public class Invoice {
     @Column(name = "end_customer_name")
     private String endCustomerName;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contractor_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Customer contractor;
+
+    @Column(name = "contractor_name")
+    private String contractorName;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal commission;
 
@@ -86,6 +95,9 @@ public class Invoice {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "next_pay_date")
+    private LocalDateTime nextPayDate;
+
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -93,6 +105,10 @@ public class Invoice {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "is_gst")
+    @Builder.Default
+    private Boolean isGst = false;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

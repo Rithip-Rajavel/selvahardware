@@ -73,10 +73,32 @@ public class InvoiceController {
         return ResponseEntity.ok(ApiResponse.success(null, "Invoice deleted"));
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Update invoice")
+    public ResponseEntity<ApiResponse<InvoiceDto>> updateInvoice(@PathVariable UUID id,
+            @Valid @RequestBody InvoiceRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(invoiceService.updateInvoice(id, request), "Invoice updated"));
+    }
+
+    @GetMapping("/pending-due-by-date")
+    @Operation(summary = "Get pending invoices due by date")
+    public ResponseEntity<ApiResponse<List<InvoiceDto>>> getPendingInvoicesDueByDate(
+            @RequestParam String date) {
+        return ResponseEntity.ok(ApiResponse.success(invoiceService.getPendingInvoicesDueByDate(date)));
+    }
+
     @PostMapping("/{id}/pay")
     @Operation(summary = "Apply payment to invoice")
     public ResponseEntity<ApiResponse<InvoiceDto>> payInvoice(@PathVariable UUID id,
-                                                               @Valid @RequestBody PayInvoiceRequest request) {
+            @Valid @RequestBody PayInvoiceRequest request) {
         return ResponseEntity.ok(ApiResponse.success(invoiceService.payInvoice(id, request)));
+    }
+
+    @PutMapping("/{id}/gst")
+    @Operation(summary = "Update invoice GST status")
+    public ResponseEntity<ApiResponse<InvoiceDto>> updateInvoiceGstStatus(@PathVariable UUID id,
+            @RequestBody Boolean isGst) {
+        return ResponseEntity
+                .ok(ApiResponse.success(invoiceService.updateGstStatus(id, isGst), "Invoice GST status updated"));
     }
 }

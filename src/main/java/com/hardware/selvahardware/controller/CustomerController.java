@@ -38,7 +38,8 @@ public class CustomerController {
     @PostMapping
     @Operation(summary = "Add new customer")
     public ResponseEntity<ApiResponse<CustomerDto>> createCustomer(@Valid @RequestBody CustomerRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(customerService.createCustomer(request), "Customer created"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(customerService.createCustomer(request), "Customer created"));
     }
 
     @GetMapping("/{id}")
@@ -49,7 +50,8 @@ public class CustomerController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Update customer details")
-    public ResponseEntity<ApiResponse<CustomerDto>> updateCustomer(@PathVariable UUID id, @Valid @RequestBody CustomerRequest request) {
+    public ResponseEntity<ApiResponse<CustomerDto>> updateCustomer(@PathVariable UUID id,
+            @Valid @RequestBody CustomerRequest request) {
         return ResponseEntity.ok(ApiResponse.success(customerService.updateCustomer(id, request), "Customer updated"));
     }
 
@@ -59,9 +61,16 @@ public class CustomerController {
         customerService.deleteCustomer(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Customer deleted"));
     }
+
     @GetMapping("/{id}/balance")
     @Operation(summary = "Get customer balance summary")
     public ResponseEntity<ApiResponse<CustomerBalanceDto>> getBalance(@PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.success(customerService.getCustomerBalance(id)));
+    }
+
+    @GetMapping("/contractor/{contractorId}")
+    @Operation(summary = "Get all customers linked to a contractor")
+    public ResponseEntity<ApiResponse<List<CustomerDto>>> getCustomersByContractor(@PathVariable UUID contractorId) {
+        return ResponseEntity.ok(ApiResponse.success(customerService.getCustomersByContractor(contractorId)));
     }
 }
